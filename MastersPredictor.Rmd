@@ -1,0 +1,212 @@
+---
+title: "Machine Learning PGA MASTERS"
+author: "Sam Milnes"
+date: "3/27/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
+pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_past5.csv")
+
+# pga <- pga[,-1]
+# 
+# 
+# pga <- subset(pga, !is.na(pga$masters_finish))
+
+
+#sub2021 <- pga[which(pga$year == 2021), ]
+#View(sub2021)
+```
+
+DEFINING COLUMN NAMES:
+
+
+Top10 -> How many top 10 finishes did the player have for that given year
+
+Wins -> How many tour wins did the player have for that given year
+
+Score Average -> The average score the player had for given year
+
+Rounds -> How many rounds the player played that given year
+
+Bounce Back -> Percent of holes that scored over par immediately followed by a hole that scored less than par
+
+Driving Accuracy -> The percentage of time a tee shot comes to rest in the fairway (regardless of club)
+
+Driving Distance -> The average number of yards per measured drive
+
+Gir -> (Greens in regulation) The percent of time a player was able to hit the green in regulation (greens hit in regulation/holes played)
+
+Hole_Proximity -> The average distance the ball comes to rest from the hole (in feet) after the player's approach shot.
+
+x_of_attempts -> 
+
+putts_round ->  The average number of total putts per round
+
+scramble -> Percent that shows a players ability to make par (or better) even if a Green in Regulation (GIR) is missed
+
+sg_putt -> The number of putts a player takes from a specific distance is measured against a statistical baseline to determine the player's strokes gained or lost on a hole.
+
+sg_t2g -> The per round average of the number of Strokes the player was better or worse than the field average on the same course & event minus the Players Strokes Gained putting value.
+
+sg_total -> The per round average of the number of Strokes the player was better or worse than the field average on the same course & event.
+
+sg_approach -> The number of Approach the Green strokes a player takes from specific locations and distances are measured against a statistical baseline to determine the player's strokes gained or lost on a hole
+
+sg_tee -> The number of strokes a player takes from a specific distance off the tee on Par 4 & par 5's is measured against a statistical baseline to determine the player's strokes gained or lost off the tee on a hole
+
+sg_ar -> The number of Around the Green strokes a player takes from specific locations and distances are measured against a statistical baseline to determine the player's strokes gained or lost on a hole
+
+par4_sa -> 
+
+par3_sa ->
+
+par5_sa -> 
+
+covered_tee -> 
+
+left_rough ->
+
+right_rough -> 
+
+fair_bunk -> 
+
+gir_fair -> 
+
+gir_not_fair -> 
+
+prox_fair ->
+
+prox_rough -> 
+
+go_for_green ->
+
+sand_save -> 
+
+prox_arg ->
+
+putt_25 ->
+
+putt15_25 ->
+
+putt10_15 ->
+
+putt_10 ->
+
+finround_sa ->
+
+masters_finish ->
+
+total_score -> 
+
+
+
+
+List of players playing in 2022 Masters
+```{r}
+
+masters2022_list = list("Abraham Ancer",
+                     "Daniel Berger",
+                     "Christiaan Bezuidenhout",
+                     "Sam Burns",
+                     "Patrick Cantlay",
+                     "Paul Casey",
+                     "Cameron Champ",
+                     "Stewart Cink",
+                     "Corey Conners",
+                     "Fred Couples",
+                     "Cameron Davis",
+                     "Bryson DeChambeau",
+                     "Harry English",
+                     "Tony Finau",
+                     "Matthew Fitzpatrick",
+                     "Tommy Fleetwood",
+                     "Sergio Garcia",
+                     "Lucas Glover",
+                     "Talor Gooch",
+                     "Austin Greaser",
+                     "Steward Hagestad",
+                     "Brian Harman",
+                     "Padraig Harrington",
+                     "Tyrrell Hatton",
+                     "Lucas Herbert",
+                     "Garrick Higgo",
+                     "Harry Higgs",
+                     "Tom Hoge",
+                     "Max Homa",
+                     "Billy Horschel",
+                     "Viktor Hovland",
+                     "Mackenzie Hughes",
+                     "Sungjae Im",
+                     "Aaron Jarvis",
+                     "Dustin Johnson",
+                     "Zach Johnson",
+                     "Takumi Kanaya",
+                     "Si Woo Kim",
+                     "Kevin Kisner",
+                     "Brooks Koepka",
+                     "Jason Kokrak",
+                     "Bernhard Langer",
+                     "Kyoung-Hoon Lee",
+                     "Min Woo Lee",
+                     "Marc Leishman",
+                     "Luke List",
+                     "Shane Lowry",
+                     "Sandy Lyle",
+                     "Robert MacIntyre",
+                     "Hideki Matsuyama",
+                     "Rory McIlroy",
+                     "Guido Migliozzi",
+                     "Larry Mize",
+                     "Francesco Molinari",
+                     "Collin Morikawa",
+                     "Kevin Na",
+                     "Keita Nakajima",
+                     "Joaquin Niemann",
+                     "Jose Mario Olazabal", #Check for spelling
+                     "Louis Oosthuizen",
+                     "Ryan Palmer",
+                     "James Piot",
+                     "Jon Rahm",
+                     "Patrick Reed",
+                     "Justin Rose",
+                     "Xander Schauffele",
+                     "Scottie Scheffler",
+                     "Charl Schwartzel",
+                     "Adam Scott",
+                     "Laird Shepherd",
+                     "Webb Simpson",
+                     "Vijay Singh",
+                     "Camerson Smith",
+                     "Jordon Spieth",
+                     "Sepp Straka",
+                     "Hudson Swafford",
+                     "Justin Thomas",
+                     "Erik van Rooyen",
+                     "Bubba Watson",
+                     "Mike Weir",
+                     "Lee Westwood",
+                     "Danny Willet",
+                     "Matthew Wolff",
+                     "Gary Woodland",
+                     "Tiger Woods",
+                     "Will Zalatoris")
+```
+
+Filter data to only players playing in Masters this year.
+```{r}
+library(dplyr)    
+
+current_masters <- filter(pga, player_name %in% masters2022_list)
+
+current_masters <- current_masters[, -1]
+View(current_masters)
+
+```
+
