@@ -22,6 +22,8 @@ pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Proje
 
 #sub2021 <- pga[which(pga$year == 2021), ]
 #View(sub2021)
+
+# Try using clustering to see if any factors are more important
 ```
 
 DEFINING COLUMN NAMES:
@@ -63,48 +65,47 @@ sg_tee -> The number of strokes a player takes from a specific distance off the 
 
 sg_ar -> The number of Around the Green strokes a player takes from specific locations and distances are measured against a statistical baseline to determine the player's strokes gained or lost on a hole
 
-par4_sa -> 
+par4_sa -> The average score on all par 4's played 
 
-par3_sa ->
+par3_sa -> The average score on all par 3's played 
 
-par5_sa -> 
+par5_sa -> The average score on all par 5's played 
 
-covered_tee -> 
+covered_tee -> For those par 4's and par 5's where the tee shot was determined by a laser, the percentage of the hole distances that are covered by the tee shot.
 
-left_rough ->
+left_rough -> The percentage of time a tee shot comes to rest in the left rough (regardless of club)
 
-right_rough -> 
+right_rough -> The percentage of time a tee shot comes to rest in the right rough (regardless of club)
 
-fair_bunk -> 
+fair_bunk -> The percentage of time a tee shot comes to rest in a fairway bunker (regardless of club)
 
-gir_fair -> 
+gir_fair -> The percent of time a player was able to hit the green in regulation when the tee shot came to rest on the fairway
 
-gir_not_fair -> 
+gir_not_fair -> The percent of time a player was not able to hit the green in regulation when the tee shot came to rest on the fairway
 
-prox_fair ->
+prox_fair -> The average distance remaining to the hole for all approach shots hit from the fairway (or the tee box on a par 3)
 
-prox_rough -> 
+prox_rough -> The average distance remaining to the hole for all approach shots hit from the rough, but not around the green. The approach shot must end on or around the green or in the hole.
 
-go_for_green ->
+go_for_green -> The percent of time a player attempting to go for the green is successful. A player is assumed to be going for the green if the first shot on a par 4 or second shot on a par 5 lands on or around the green. If the second shot on a par 5 lands in the water, it is included as well
 
-sand_save -> 
+sand_save -> The percent of time a player was able to get 'up and down' once in a greenside sand bunker (regardless of score)
 
-prox_arg ->
+prox_arg -> The average distance to the hole (in feet) after hitting the ball onto the putting surface from around the green.
 
-putt_25 ->
+putt_25 ->  the percent of putts made when the ball is greater than 25 feet from the hole
 
-putt15_25 ->
+putt15_25 ->  the percent of putts made when the ball is between 15 and 25 feet from the hole
 
-putt10_15 ->
+putt10_15 ->  the percent of putts made when the ball is between 10 and 15 feet from the hole
 
-putt_10 ->
+putt_10 -> the percent of putts made when the ball is less than 10 feet from the hole
 
-finround_sa ->
+finround_sa -> The average number of strokes for the final round of each tournament played.
 
-masters_finish ->
+masters_finish -> the place the player finished in at that years masters. CUT means player didn't make cut.
 
-total_score -> 
-
+total_score -> The players total score from that year at the masters
 
 
 
