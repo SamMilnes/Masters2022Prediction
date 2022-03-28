@@ -1,0 +1,972 @@
+---
+title: "Machine Learning Final Project"
+author: "Sam Milnes"
+date: "3/27/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libs, include=FALSE}
+library(RCurl)
+library(readxl)
+library(dplyr)
+library(openxlsx)
+library(httr)
+library(XML)
+library(RCurl)
+library(rvest)
+library(janitor)
+library(purrr)
+library(stargazer)
+```
+
+```{r knitr-options, include = FALSE}
+knitr::opts_chunk$set(fig.align="center",
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA)
+```
+
+This markdown file scrapes the PGA Tour website for the desired statistics that will be used for analysis and creates a single data frame that includes all 18 stats for 463 players.
+
+## Variables
+Each of the below variables is created for the years 2005:2018.
+```{r}
+## Create function to get definitions for each variable from PGA website
+get_variable_defintions <- function(stat){
+  pga_data_urls <- paste("https://www.pgatour.com/stats/stat.",
+                       stat, ".y2021.html",
+                       sep = "")
+  pg <- read_html(pga_data_urls)
+  footer <- html_nodes(pg, 'p')
+  definition <- html_text(footer[3])
+  return(definition)
+}
+```
+
+https://www.pgatour.com/content/pgatour/stats/stat.02568.y2021.eoff.t041.html
+
+1. `top10`
+```{r}
+get_variable_defintions(138)
+```
+2. `sg_total`
+```{r}
+get_variable_defintions(2675)
+```
+3. `sg_putt`
+```{r}
+get_variable_defintions(2564)
+```
+4. `sg_t2g`
+```{r}
+get_variable_defintions(2674)
+```
+5. `score_avg`
+```{r}
+get_variable_defintions(120)
+```
+6. `rounds`
+```{r}
+print("Number of rounds played in year")
+```
+7. `driving_distance`
+```{r}
+get_variable_defintions(101)
+```
+9. `gir`
+```{r}
+get_variable_defintions(103)
+```
+10. `ranking`
+```{r}
+get_variable_defintions(127)
+```
+11. `wins`
+```{r}
+print("Total number of 1st places")
+```
+12. `putts_round`
+```{r}
+get_variable_defintions(119)
+```
+13. `scramble` 
+```{r}
+get_variable_defintions(130)
+```
+14. `par5_SA`
+```{r}
+get_variable_defintions(144)
+```
+15. `bounce_back`
+```{r}
+get_variable_defintions(160)
+```
+16. `driving_accuracy`
+```{r}
+get_variable_defintions(102)
+```
+17. `hole_proximity`
+```{r}
+get_variable_defintions(331)
+```
+18. `masters_finish`
+```{r}
+print("Finish position in Masters tournament")
+```
+19. `masters_players`
+```{r}
+print("Players who have played in at least one Masters tournament")
+```
+20. `wgr`
+```{r}
+print("World sandlf Ranking in Week 13 - the week before Masters tournament")
+```
+21. `sg_approach`
+```{r}
+get_variable_defintions(02568)
+```
+
+22. `sg_tee`
+```{r}
+get_variable_defintions(02567)
+```
+
+23. `perc_tee`
+```{r}
+get_variable_defintions(02341)
+```
+
+24.`left_rough`
+```{r}
+get_variable_defintions(459)
+```
+
+25.`right_rough`
+```{r}
+get_variable_defintions(460)
+```
+
+26. `fair_bunk`
+```{r}
+get_variable_defintions(01008)
+```
+
+27.`gir_fair`
+```{r}
+get_variable_defintions(190)
+```
+
+28.`gir_notfair`
+```{r}
+get_variable_defintions(199)
+```
+
+29.`prox_fair`
+```{r}
+get_variable_defintions(431)
+```
+
+30.`prox_rough`
+```{r}
+get_variable_defintions(437)
+```
+
+31.`goforgreen`
+```{r}
+get_variable_defintions(486)
+```
+
+32. `sg_arg`
+```{r}
+get_variable_defintions(02569)
+```
+
+33. `sand_save`
+```{r}
+get_variable_defintions(111)
+```
+
+34. `prox_arg`
+```{r}
+get_variable_defintions(374)
+```
+
+35. `putt_25`
+```{r}
+get_variable_defintions(408)
+```
+
+36. `putt_1525`
+```{r}
+get_variable_defintions(02328)
+```
+
+37. `putt_1015`
+```{r}
+get_variable_defintions(405)
+```
+
+38. `putt_10`
+```{r}
+get_variable_defintions(484)
+```
+
+39. `par3_sa`
+```{r}
+get_variable_defintions(171)
+```
+
+40. `final_round_sa`
+```{r}
+get_variable_defintions(118)
+```
+
+```{r}
+year = 2021
+if (year == 2004 || year == 2005 || year == 2006){
+  tourney = ".eoff.t022"
+}
+if (year == 2007 || year == 2008 || year == 2009 || year == 2010 || year == 2011 || year == 2012 || year == 2014 || year == 2015 || year == 2016 || year == 2017 || year == 2018 || year == 2021){
+  tourney = ".eoff.t020"}
+if (year == 2019 || year == 2021){
+  tourney = ".eoff.t041"
+}
+print(tourney)
+```
+
+
+## PGA Tour Web Scraper
+The following creates a scraper to scrape the needed data from www.pgatour.com/stats. First the scaper is created, then the data for each year and stat is cleaned up and assigned to a corresponding variable. Finally, all stats for each player and year are merged into one data frame for each year. To use the function to get different stats for different years: get_all_data(stat, year) - where stat is corresponding stat number from website (ie. "127") and year is year of data desired (ie. 2018).
+
+```{r}
+## Create function to retrieve statistics from PGA website
+get_all_data <- function(stat, year = 2018){
+
+  tourney = case_when(
+  year == 2004 ~ ".eoff.t022",
+  year == 2005 ~ ".eoff.t022",
+  year == 2006 ~ ".eoff.t022",
+  year == 2007 ~ ".eoff.t020",
+  year == 2008 ~ ".eoff.t020",
+  year == 2009 ~ ".eoff.t020",
+  year == 2010 ~ ".eoff.t020",
+  year == 2011 ~ ".eoff.t020",
+  year == 2012 ~ ".eoff.t020",
+  year == 2013 ~ ".eoff.t020",
+  year == 2014 ~ ".eoff.t020",
+  year == 2015 ~ ".eoff.t020",
+  year == 2016 ~ ".eoff.t020",
+  year == 2017 ~ ".eoff.t020",
+  year == 2018 ~ ".eoff.t020",
+  year == 2019 ~ ".eoff.t041",
+  year == 2020 ~ ".eoff.t020",
+  year == 2021 ~ ".eoff.t041",
+  )
+  
+  if(year == 2020){
+    year = 2021
+  }
+  else {year = year}
+  
+  pga_data_urls <- paste("https://www.pgatour.com/stats/stat.",
+                       stat, ".","y",
+                       year,
+                       tourney,
+                       ".html",
+                       sep = "")
+  pg <- read_html(pga_data_urls)
+  tables <- html_nodes(pg, "table")
+  stat_data <- data.frame(html_table(tables))
+  names(stat_data)[names(stat_data)=="X3"] <- "Year"
+  stat_data[3] <- year
+  return(stat_data)
+  return(tourney)
+}
+```
+
+
+```{r}
+paste("https://www.pgatour.com/stats/stat.",
+                       120, ".","y",
+                       2004,
+                       '.eoff.t020',
+                       ".html",
+                       sep = "")
+```
+
+##Create list of years to collect data for
+```{r}
+years <- c(2004:2019, 2021)
+print(years)
+```
+
+
+##Get Ranking `ranking`
+```{r}
+rank_list <- lapply(years, get_all_data, stat="127")
+rank_indx <- lengths(rank_list)
+ranking_all <- as.data.frame(do.call(rbind,lapply(rank_list, `length<-`, max(rank_indx))))
+ranking_all <- subset(ranking_all, select = c("Year", "PLAYER.NAME", "RANK.THIS.WEEK")) %>% clean_names() 
+names(ranking_all)[names(ranking_all)=="rank_this_week"] <- "ranking"
+```
+
+## Get Top 10 Finishes and Wins `top_10` `wins`
+```{r}
+top10_list <- lapply(years, get_all_data, stat="138")
+top10_indx <- lengths(top10_list)
+top10_all <- as.data.frame(do.call(rbind,lapply(top10_list, `length<-`, max(top10_indx))))
+top10_all <- subset(top10_all, select = c("Year", "PLAYER.NAME", "TOP.10", "X1ST")) %>% clean_names() 
+names(top10_all)[names(top10_all)=="x1st"] <- "wins"
+```
+
+## Get Scoring Average & Rounds `score_average` `rounds`
+```{r}
+sa_list <- lapply(years, get_all_data, stat="120")
+sa_indx <- lengths(sa_list)
+score_avg_all <- as.data.frame(do.call(rbind,lapply(sa_list, `length<-`, max(sa_indx))))
+score_avg_all <- subset(score_avg_all, select = c("Year", "PLAYER.NAME", "AVG", "ROUNDS")) %>% clean_names() 
+names(score_avg_all)[names(score_avg_all)=="avg"] <- "score_average"
+```
+
+## Get Strokes Gained Stats `sg_total`
+```{r}
+sg_list <- lapply(years, get_all_data, stat="02675")
+sg_indx <- lengths(sg_list)
+strokes_gained_all <- as.data.frame(do.call(rbind,lapply(sg_list, `length<-`, max(sg_indx))))
+strokes_gained_all <- subset(strokes_gained_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>% clean_names() 
+names(strokes_gained_all)[names(strokes_gained_all)=="average"] <- "sg_total"
+```
+
+##`sg_t2g`
+```{r}
+sg_t2g_list <- lapply(years, get_all_data, stat="02674")
+sg_t2g_indx <- lengths(sg_t2g_list)
+sg_t2g_all <- as.data.frame(do.call(rbind,lapply(sg_t2g_list, `length<-`, max(sg_t2g_indx))))
+sg_t2g_all <- subset(sg_t2g_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>% clean_names() 
+names(sg_t2g_all)[names(sg_t2g_all)=="average"] <- "sg_t2g"
+```
+
+##`sg_putt`
+```{r}
+sg_putt_list <- lapply(years, get_all_data, stat="02564")
+sg_putt_indx <- lengths(sg_putt_list)
+#one <- names(sg_putt_list[[1]])
+#names(sg_putt_list[[6]]) <- c(one[1:8], "TOTAL.SG.PUTTING", one[10])
+sg_putt_all <- as.data.frame(do.call(rbind,lapply(sg_putt_list, `length<-`, max(sg_putt_indx))))
+sg_putt_all <- subset(sg_putt_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>% clean_names() 
+names(sg_putt_all)[names(sg_putt_all)=="average"] <- "sg_putt"
+```
+
+## Get Driving Distance `driving_distance`
+```{r}
+#x <- 2005:2019
+#x <- x[x%%2016!=0]
+d_list <- lapply(years, get_all_data, stat="101")
+d_indx <- lengths(d_list)
+driving_distance_all <- as.data.frame(do.call(rbind,lapply(d_list, `length<-`, max(d_indx))))
+driving_distance_all <- subset(driving_distance_all, select = c("Year", "PLAYER.NAME", "AVG.")) %>% clean_names() 
+names(driving_distance_all)[names(driving_distance_all)=="avg"] <- "driving_distance"
+```
+
+## Get Greens in Regulation (GIR) % `gir`
+```{r}
+gir_list <- lapply(years, get_all_data, stat="103")
+gir_indx <- lengths(gir_list)
+gir_all <- as.data.frame(do.call(rbind, lapply(gir_list, `length<-`, max(gir_indx))))
+gir_all <- subset(gir_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(gir_all)[names(gir_all)=="x"] <- "gir"
+```
+
+## Get average putts per round `putts_round`
+```{r}
+putts_list <- lapply(years, get_all_data, stat="119")
+putts_indx <- lengths(putts_list)
+putts_all <- as.data.frame(do.call(rbind, lapply(putts_list, `length<-`, max(putts_indx))))
+putts_all <- subset(putts_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(putts_all)[names(putts_all)=="avg"] <- "putts_round"
+```
+
+## Get bounce back `bounce_back`
+```{r}
+bb_list <- lapply(years, get_all_data, stat="160")
+bb_indx <- lengths(bb_list)
+bb_all <- as.data.frame(do.call(rbind, lapply(bb_list, `length<-`, max(bb_indx))))
+bb_all <- subset(bb_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(bb_all)[names(bb_all)=="x"] <- "bounce_back"
+```
+
+## Get driving accuracy `driving_accuracy`
+```{r}
+da_list <- lapply(years, get_all_data, stat="102")
+da_indx <- lengths(da_list)
+da_all <- as.data.frame(do.call(rbind, lapply(da_list, `length<-`, max(da_indx))))
+da_all <- subset(da_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(da_all)[names(da_all)=="x"] <- "driving_accuracy"
+```
+
+## Get proximity to hole `hole_proximity`
+```{r}
+p_list <- lapply(years, get_all_data, stat="331")
+p_indx <- lengths(p_list)
+p_all <- as.data.frame(do.call(rbind, lapply(p_list, `length<-`, max(p_indx))))
+p_all <- subset(p_all, select = c("Year", "PLAYER.NAME", "TOTAL.DISTANCE..FEET.", "X..OF.ATTEMPTS")) %>%  clean_names()
+names(p_all)[names(p_all)=="total_distance_feet"] <- "hole_proximity"
+```
+
+## Get scrambling % `scramble`
+```{r}
+s_list <- lapply(years, get_all_data, stat="130")
+s_indx <- lengths(s_list)
+s_all <- as.data.frame(do.call(rbind, lapply(s_list, `length<-`, max(s_indx))))
+s_all <- subset(s_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(s_all)[names(s_all)=="x"] <- "scramble"
+```
+
+## Get SG Approach `sg_approach`
+```{r}
+a_list <- lapply(years, get_all_data, stat="02568")
+a_indx <- lengths(a_list)
+a_all <- as.data.frame(do.call(rbind, lapply(a_list, `length<-`, max(a_indx))))
+a_all <- subset(a_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>%  clean_names()
+names(a_all)[names(a_all)=="average"] <- "sg_approach"
+```
+
+## Get SG off the tee `sg_tee`
+```{r}
+tee_list <- lapply(years, get_all_data, stat="02567")
+tee_indx <- lengths(tee_list)
+tee_all <- as.data.frame(do.call(rbind, lapply(tee_list, `length<-`, max(tee_indx))))
+tee_all <- subset(tee_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>%  clean_names()
+names(tee_all)[names(tee_all)=="average"] <- "sg_tee"
+```
+
+## Get SG around the green `sg_ar`
+```{r}
+ar_list <- lapply(years, get_all_data, stat="02569")
+ar_indx <- lengths(ar_list)
+ar_all <- as.data.frame(do.call(rbind, lapply(ar_list, `length<-`, max(ar_indx))))
+ar_all <- subset(ar_all, select = c("Year", "PLAYER.NAME", "AVERAGE")) %>%  clean_names()
+names(ar_all)[names(ar_all)=="average"] <- "sg_ar"
+```
+
+## Get par4 Scoring Average `par4_sa`
+```{r}
+p4_list <- lapply(years, get_all_data, stat="143")
+p4_indx <- lengths(p4_list)
+p4_all <- as.data.frame(do.call(rbind, lapply(p4_list, `length<-`, max(p4_indx))))
+p4_all <- subset(p4_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(p4_all)[names(p4_all)=="avg"] <- "par4_sa"
+```
+
+## Get par3 Scoring Average `par3_sa`
+```{r}
+p3_list <- lapply(years, get_all_data, stat="142")
+p3_indx <- lengths(p3_list)
+p3_all <- as.data.frame(do.call(rbind, lapply(p3_list, `length<-`, max(p3_indx))))
+p3_all <- subset(p3_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(p3_all)[names(p3_all)=="avg"] <- "par3_sa"
+```
+
+## Get par5 Scoring Average `par5_sa`
+```{r}
+p5_list <- lapply(years, get_all_data, stat="144")
+p5_indx <- lengths(p5_list)
+p5_all <- as.data.frame(do.call(rbind, lapply(p5_list, `length<-`, max(p5_indx))))
+p5_all <- subset(p5_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(p5_all)[names(p5_all)=="avg"] <- "par5_sa"
+```
+
+## Get %covered_tee `covered_tee`
+```{r}
+cov_list <- lapply(years, get_all_data, stat="02341")
+cov_indx <- lengths(cov_list)
+cov_all <- as.data.frame(do.call(rbind, lapply(cov_list, `length<-`, max(cov_indx))))
+cov_all <- subset(cov_all, select = c("Year", "PLAYER.NAME", "AVG....")) %>%  clean_names()
+names(cov_all)[names(cov_all)=="avg"] <- "covered_tee"
+```
+
+## Get left rough tendency `left_rough`
+```{r}
+lr_list <- lapply(years, get_all_data, stat="459")
+lr_indx <- lengths(lr_list)
+lr_all <- as.data.frame(do.call(rbind, lapply(lr_list, `length<-`, max(lr_indx))))
+lr_all <- subset(lr_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(lr_all)[names(lr_all)=="x"] <- "left_rough"
+```
+
+## Get right rough tendency `right_rough`
+```{r}
+rr_list <- lapply(years, get_all_data, stat="460")
+rr_indx <- lengths(rr_list)
+rr_all <- as.data.frame(do.call(rbind, lapply(rr_list, `length<-`, max(rr_indx))))
+rr_all <- subset(rr_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(rr_all)[names(rr_all)=="x"] <- "right_rough"
+```
+
+## Get fairway bunker tendency `fair_bunk`
+```{r}
+fair_list <- lapply(years, get_all_data, stat="01008")
+fair_indx <- lengths(fair_list)
+fair_all <- as.data.frame(do.call(rbind, lapply(fair_list, `length<-`, max(fair_indx))))
+fair_all <- subset(fair_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(fair_all)[names(fair_all)=="x"] <- "fair_bunk"
+```
+
+## Get GIR from fairway `gir_fair`
+```{r}
+girf_list <- lapply(years, get_all_data, stat="190")
+girf_indx <- lengths(girf_list)
+girf_all <- as.data.frame(do.call(rbind, lapply(girf_list, `length<-`, max(girf_indx))))
+girf_all <- subset(girf_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(girf_all)[names(girf_all)=="x"] <- "gir_fair"
+```
+
+## Get GIR not fairway `gir_not_fair`
+```{r}
+girnf_list <- lapply(years, get_all_data, stat="199")
+girnf_indx <- lengths(girnf_list)
+girnf_all <- as.data.frame(do.call(rbind, lapply(girnf_list, `length<-`, max(girnf_indx))))
+girnf_all <- subset(girnf_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(girnf_all)[names(girnf_all)=="x"] <- "gir_not_fair"
+```
+
+## Get proximity from fairway `prox_fair`
+```{r}
+proxf_list <- lapply(years, get_all_data, stat="431")
+proxf_indx <- lengths(proxf_list)
+proxf_all <- as.data.frame(do.call(rbind, lapply(proxf_list, `length<-`, max(proxf_indx))))
+proxf_all <- subset(proxf_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(proxf_all)[names(proxf_all)=="avg"] <- "prox_fair"
+```
+
+## Get proximity from rough `prox_rough`
+```{r}
+proxr_list <- lapply(years, get_all_data, stat="437")
+proxr_indx <- lengths(proxr_list)
+proxr_all <- as.data.frame(do.call(rbind, lapply(proxr_list, `length<-`, max(proxr_indx))))
+proxr_all <- subset(proxr_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(proxr_all)[names(proxr_all)=="avg"] <- "prox_rough"
+```
+
+## Get go_for_green `go_for_green`
+```{r}
+go_list <- lapply(years, get_all_data, stat="486")
+go_indx <- lengths(go_list)
+go_all <- as.data.frame(do.call(rbind, lapply(go_list, `length<-`, max(go_indx))))
+go_all <- subset(go_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(go_all)[names(go_all)=="x"] <- "go_for_green"
+```
+
+## Get sand_save `sand_save`
+```{r}
+sand_list <- lapply(years, get_all_data, stat="111")
+sand_indx <- lengths(sand_list)
+sand_all <- as.data.frame(do.call(rbind, lapply(sand_list, `length<-`, max(sand_indx))))
+sand_all <- subset(sand_all, select = c("Year", "PLAYER.NAME", "X.")) %>%  clean_names()
+names(sand_all)[names(sand_all)=="x"] <- "sand_save"
+```
+
+## Get prox_arg `prox_arg`
+```{r}
+proxarg_list <- lapply(years, get_all_data, stat="374")
+proxarg_indx <- lengths(proxarg_list)
+proxarg_all <- as.data.frame(do.call(rbind, lapply(proxarg_list, `length<-`, max(proxarg_indx))))
+proxarg_all <- subset(proxarg_all, select = c("Year", "PLAYER.NAME", "AVG.DTP")) %>%  clean_names()
+names(proxarg_all)[names(proxarg_all)=="avg_dtp"] <- "prox_arg"
+```
+
+## Get putting >25 `putt_25`
+```{r}
+putt25_list <- lapply(years, get_all_data, stat="408")
+putt25_indx <- lengths(putt25_list)
+putt25_all <- as.data.frame(do.call(rbind, lapply(putt25_list, `length<-`, max(putt25_indx))))
+putt25_all <- subset(putt25_all, select = c("Year", "PLAYER.NAME", "X..MADE")) %>%  clean_names()
+names(putt25_all)[names(putt25_all)=="x_made"] <- "putt_25"
+```
+
+## Get putting 15-25 `putt15_25`
+```{r}
+putt15_25_list <- lapply(years, get_all_data, stat="02328")
+putt15_25_indx <- lengths(putt15_25_list)
+putt15_25_all <- as.data.frame(do.call(rbind, lapply(putt15_25_list, `length<-`, max(putt15_25_indx))))
+putt15_25_all <- subset(putt15_25_all, select = c("Year", "PLAYER.NAME", "X..MADE")) %>%  clean_names()
+names(putt15_25_all)[names(putt15_25_all)=="x_made"] <- "putt15_25"
+```
+
+## Get putting 10-15 `putt10_15`
+```{r}
+putt10_15_list <- lapply(years, get_all_data, stat="405")
+putt10_15_indx <- lengths(putt10_15_list)
+putt10_15_all <- as.data.frame(do.call(rbind, lapply(putt10_15_list, `length<-`, max(putt10_15_indx))))
+putt10_15_all <- subset(putt10_15_all, select = c("Year", "PLAYER.NAME", "X..MADE")) %>%  clean_names()
+names(putt10_15_all)[names(putt10_15_all)=="x_made"] <- "putt10_15"
+```
+
+## Get putting <10 `putt_10`
+```{r}
+putt10_list <- lapply(years, get_all_data, stat="484")
+putt10_indx <- lengths(putt10_list)
+putt10_all <- as.data.frame(do.call(rbind, lapply(putt10_list, `length<-`, max(putt10_indx))))
+putt10_all <- subset(putt10_all, select = c("Year", "PLAYER.NAME", "X..MADE")) %>%  clean_names()
+names(putt10_all)[names(putt10_all)=="x_made"] <- "putt_10"
+```
+
+## Get final round sa `finround_sa`
+```{r}
+finround_list <- lapply(years, get_all_data, stat="118")
+finround_indx <- lengths(finround_list)
+finround_all <- as.data.frame(do.call(rbind, lapply(finround_list, `length<-`, max(finround_indx))))
+finround_all <- subset(finround_all, select = c("Year", "PLAYER.NAME", "AVG")) %>%  clean_names()
+names(finround_all)[names(finround_all)=="avg"] <- "finround_sa"
+```
+
+## Get all PGA Players from years 2005:2021
+```{r}
+players <- as.data.frame(cbind(top10_all$player_name))
+players <- (players[!duplicated(players),])
+players <- as.data.frame(players)
+names(players)[names(players)=="players"] <- "player_name"
+```
+
+# Get Recent Play Variables
+Stats over last 5 events leading into masters
+
+-scoring average
+-sg t2g
+-sg putting
+-sg arg
+
+
+steps for each player
+1. get 5 tournaments leading up to the masters in each year
+2. get tournament only stats from those events
+3. average out 
+
+
+going to have to get the 5 tournaments leading up to the masters
+
+Ford Championship, honda classic, bay hill, players, bell south - t008, t010, t009, t011, t022
+Honda classic, PODS, bay hill, WGC, shell - t010, t475, t009, t473, t020
+bay hill, puerto rico, WGC, zurich, shell - t009, t483, t473, t018, t020
+puerto rico, WGC, traditions, bay hill, shell - t483, t473, t475, t009, t020
+WGC, TB, Bay Hill, shell, valero
+WGC cadillac, 
+
+2004 - t008, t010, t009, t011, t022
+2005 - t008, t010, t009, t011, t022
+2006 - t008, t010, t009, t011, t022
+2007 - t010, t475, t009, t473, t020
+2008 - t009, t483, t473, t018, t020
+2009 - t483, t473, t475, t009, t020
+2010 - t483, t473, t475, t009, t020
+2011 - t483, t473, t475, t009, t020
+2012 - t483, t473, t475, t009, t020
+2013 - t473, t475, t009, t020, t041
+2014 - t473, t475, t009, t041, t020
+2015 - t473, t475, t009, t041, t020
+2016 - t475, t009, t483, t473, t020
+2017 - t475, t009, t473, t010, t020
+2018 - t473, t475, t009, t020, t010
+2019 - t010, t009, t011, t475, t041
+2021 - t473, t009, t011, t010, t041
+2022 - 
+
+```{r}
+get_past5 = function(yr, st){
+  my_data = list()
+  print(yr)
+  
+  year = yr
+    
+  stat = st
+  
+  for (i in 1:5){
+    
+    tourney_list = case_when(year == 2004 ~ c('t008', 't010', 't009', 't011', 't022'),
+                             year == 2005 ~ c('t008', 't010', 't009', 't011', 't022'),
+                             year == 2006 ~ c('t008', 't010', 't009', 't011', 't022'),
+                             year == 2007 ~ c('t010', 't475', 't009', 't473', 't020'),
+                             year == 2008 ~ c('t009', 't483', 't473', 't018', 't020'),
+                             year == 2009 ~ c('t483', 't473', 't475', 't009', 't020'),
+                             year == 2010 ~ c('t483', 't473', 't475', 't009', 't020'),
+                             year == 2011 ~ c('t483', 't473', 't475', 't009', 't020'),
+                             year == 2012 ~ c('t483', 't473', 't475', 't009', 't020'),
+                             year == 2013 ~ c('t473', 't475', 't009', 't020', 't041'),
+                             year == 2014 ~ c('t473', 't475', 't009', 't041', 't020'),
+                             year == 2015 ~ c('t473', 't475', 't009', 't041', 't020'),
+                             year == 2016 ~ c('t475', 't009', 't483', 't473', 't020'),
+                             year == 2017 ~ c('t475', 't009', 't473', 't010', 't020'),
+                             year == 2018 ~ c('t473', 't475', 't009', 't020', 't010'),
+                             year == 2019 ~ c('t010', 't009', 't011', 't475', 't041'),
+                             year == 2021 ~ c('t473', 't009', 't011', 't010', 't041'))
+    
+    pga_data_urls <- paste("https://www.pgatour.com/stats/stat.",
+                           stat, ".","y",
+                           year,
+                           ".eon.",
+                           tourney_list[i],
+                           ".html",
+                           sep = "")
+    
+    print(i)
+    
+    pg <- read_html(pga_data_urls)
+    tables <- html_nodes(pg, "table")
+    
+    t = try(stat_data <- data.frame(html_table(tables)))
+    
+    if("try-error" %in% class(t)) {
+      out = data.frame(Year = "NA", PLAYER.NAME = "NA", AVG = 0)
+      names(out)[3] = paste0("AVG_", i)
+    }
+    
+    else{
+      names(stat_data)[names(stat_data)=="X3"] <- "Year"
+      stat_data[3] <- year
+      names(stat_data)[8] <- "AVG"
+      
+      
+      out <- stat_data %>% select(Year, PLAYER.NAME, AVG)
+      names(out)[3] = paste0("AVG_", i)
+    }
+    
+    my_data[[i]] = out
+  }
+  
+  out = full_join(my_data[[1]], select(my_data[[2]], PLAYER.NAME, AVG_2), by = "PLAYER.NAME") %>% 
+    full_join(select(my_data[[3]], PLAYER.NAME, AVG_3), by = "PLAYER.NAME") %>%
+    full_join(select(my_data[[4]], PLAYER.NAME, AVG_4), by = "PLAYER.NAME") %>% 
+    full_join(select(my_data[[5]], PLAYER.NAME, AVG_5), by = "PLAYER.NAME")
+  
+  out$Year = year
+  
+  out$count <- apply(out[3:7], 1, function(x) sum(!is.na(x)))
+  
+  out = out %>% mutate(AVG = rowMeans(select(.,AVG_1, AVG_2, AVG_3, AVG_4, AVG_5), na.rm=TRUE)) %>% select(Year, PLAYER.NAME, AVG, count)
+  
+  names(out) = c("Year", "player_name", "AVG", "count")
+
+  return(out)
+}
+
+past5_2018 = get_past5(2018, "120")
+
+```
+
+## Past 5 Scoring Average
+```{r}
+past5_sa = lapply(years, get_past5, st = "120")
+sa_5 = bind_rows(past5_sa)
+names(sa_5)[3] = "past5_sa"
+names(sa_5)[4] = "past5_n_sa"
+```
+
+## Past 5 SG t2g
+```{r}
+past5_sgt2g = lapply(years, get_past5, st = "02674")
+sgt2g_5 = bind_rows(past5_sgt2g)
+names(sgt2g_5)[3] = "past5_sgt2g"
+names(sgt2g_5)[4] = "past5_n_sgt2g"
+```
+
+## Past 5 SG putt
+```{r}
+past5_sgputt = lapply(years, get_past5, st = "02564")
+sgputt_5 = bind_rows(past5_sgputt)
+names(sgputt_5)[3] = "past5_sgputt"
+names(sgputt_5)[4] = "past5_n_sgputt"
+```
+
+## Past 5 SG arg
+```{r}
+past5_sgarg = lapply(years, get_past5, st = "02568")
+sgarg_5 = bind_rows(past5_sgarg)
+names(sgarg_5)[3] = "past5_sgarg"
+names(sgarg_5)[4] = "past5_n_sgarg"
+```
+
+## Join Past 5 data
+```{r}
+past5_data = sgt2g_5 %>% 
+  full_join(sgputt_5, by = c("Year", "player_name")) %>%
+  full_join(sgarg_5, by = c("Year", "player_name")) %>%
+  full_join(sa_5, by = c("Year", "player_name"))
+```
+
+```{r}
+write.csv(past5_data, file = "2022Masters_past5.csv") 
+```
+
+
+## Web scraper to get Masters Data for past years
+The following code scrapes Masters tournament data from https://www.golfstats.com/. Here we are particularly interested in finish position and Round 1-4 scores.
+
+https://www.golfstats.com/search/?yr=2021&cyear=2021&tournament=Masters&player=&tour=Majors&submit=go
+
+```{r}
+## Create function to retrieve statistics from golf Stats website
+get_masters_data <- function(year = 2019){
+  
+  yr = case_when(year == 2020 ~ "2021",
+                 year == 2021 ~ "2021&cyear=2021",
+                 TRUE ~ as.character(year))
+  
+  masters_data_urls <- paste("https://www.golfstats.com/search/?yr=",
+                       yr,
+                       "&tournament=Masters&player=&tour=Majors&submit=go",
+                       sep = "")
+  pga <- read_html(masters_data_urls)
+  tables1 <- html_nodes(pga, "table")
+  masters_data <- data.frame(html_table(tables1))
+  masters_data <- masters_data[-1,]
+  colnames(masters_data) <- masters_data[1,]
+  masters_data <- masters_data[-1,]
+  names(masters_data)[names(masters_data)=="#"] <- "Year"
+  masters_data[2] <- year
+  return(masters_data)
+}
+```
+
+## Gather Masters data for all years `masters_finish`
+```{r}
+years <- c(2004:2019, 2021)
+m_list <- lapply(years, get_masters_data)
+m_indx <- lengths(m_list)
+m_all <- as.data.frame(do.call(rbind, lapply(m_list, `length<-`, max(m_indx))))
+names(m_all)[names(m_all) == ''] <- 'Year'
+masters_all <- subset(m_all, select = c("Player", "Year", "Finish", "Total Score")) %>%  clean_names()
+names(masters_all)[names(masters_all)=="finish"] <- "masters_finish"
+names(masters_all)[names(masters_all)=="player"] <- "player_name"
+```
+
+```{r}
+#masters_all=read.csv("/Users/samgreene/Downloads/masters_players.csv")
+```
+
+
+
+```{r}
+masters_all$ID <- seq.int(nrow(masters_all))
+
+masters_all <- within(masters_all, player_name[ID == 94] <- 'Tiger Woods')
+masters_all <- within(masters_all, player_name[ID == 95] <- 'Chris Dimarco')
+
+masters_all <- within(masters_all, player_name[ID == 467] <- 'Ángel Cabrera')
+masters_all <- within(masters_all, player_name[ID == 468] <- 'Kenny Perry')
+masters_all <- within(masters_all, player_name[ID == 469] <- 'Chad Campbell')
+
+masters_all <- within(masters_all, player_name[ID == 758] <- 'Bubba Watson')
+masters_all <- within(masters_all, player_name[ID == 759] <- 'Louis Oosthuizen')
+
+masters_all <- within(masters_all, player_name[ID == 853] <- 'Adam Scott')
+masters_all <- within(masters_all, player_name[ID == 854] <- 'Ángel Cabrera')
+
+masters_all <- within(masters_all, player_name[ID == 1230] <- 'Sergio Garcia')
+masters_all <- within(masters_all, player_name[ID == 1231] <- 'Justin Rose')
+
+#masters_all$player_name[1317] <- 'Tiger Woods'
+
+masters_all <- subset(masters_all, select = -c(ID))
+```
+
+
+## Players who have played in masters `masters_players`
+```{r}
+masters_players <- as.data.frame(masters_all$player_name)
+```
+
+
+## Merge all stats
+```{r}
+all_data <- left_join(ranking_all, top10_all, by =c("player_name", "year")) %>% 
+  left_join(score_avg_all, by=c("player_name", "year")) %>% 
+  left_join(bb_all, by=c("player_name", "year")) %>% 
+  left_join(da_all, by=c("player_name", "year")) %>% 
+  left_join(driving_distance_all, by=c("player_name", "year")) %>% 
+  left_join(gir_all, by=c("player_name", "year")) %>% 
+  left_join(p_all, by=c("player_name", "year")) ## here
+  
+all_data <- left_join(all_data, putts_all, by=c("player_name", "year")) %>% 
+  left_join(s_all, by=c("player_name", "year")) %>% 
+  left_join(sg_putt_all, by=c("player_name", "year")) %>% 
+  left_join(sg_t2g_all, by=c("player_name", "year")) %>% 
+  left_join(strokes_gained_all, by=c("player_name", "year")) %>%
+  left_join(a_all, by=c("player_name", "year")) %>%
+  left_join(tee_all, by=c("player_name", "year")) %>% #
+  left_join(ar_all, by=c("player_name", "year")) %>%
+  left_join(p4_all, by=c("player_name", "year")) %>%
+  left_join(p3_all, by=c("player_name", "year")) %>%
+  left_join(p5_all, by=c("player_name", "year"))
+
+all_data <- all_data[!(all_data$player_name=="Richard Johnson"),]
+
+all_data <- left_join(all_data,cov_all, by=c("player_name", "year")) %>%
+  left_join(lr_all, by=c("player_name", "year")) %>%
+  left_join(rr_all, by=c("player_name", "year")) %>%
+  left_join(fair_all, by=c("player_name", "year")) %>%
+  left_join(girf_all, by=c("player_name", "year")) %>%
+  left_join(girnf_all, by=c("player_name", "year")) %>%
+  left_join(proxf_all, by=c("player_name", "year")) %>%
+  left_join(proxr_all, by=c("player_name", "year")) %>%
+  left_join(go_all, by=c("player_name", "year")) %>%
+  left_join(sand_all, by=c("player_name", "year")) %>%
+  left_join(proxarg_all, by=c("player_name", "year")) %>%
+  left_join(putt25_all, by=c("player_name", "year")) %>%
+  left_join(putt15_25_all, by=c("player_name", "year")) %>%
+  left_join(putt10_15_all, by=c("player_name", "year")) %>%
+  left_join(putt10_all, by=c("player_name", "year")) %>%
+  left_join(finround_all, by=c("player_name", "year"))
+
+all_data <- right_join(all_data, masters_all, by=c("player_name", "year"))
+
+all_data <- all_data %>% arrange(player_name, year)
+## Change NAs in wins and top 10 to 0 for binary
+all_data$wins[is.na(all_data$wins)] <- 0
+all_data$top_10[is.na(all_data$top_10)] <- 0
+
+all_data$masters_finish
+```
+
+## Create csv file
+```{r}
+write.csv(all_data, file = "C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv") 
+```
+
+```{r}
+#all_data <- read.csv("pga_all_data3.csv")
+#all_data <- all_data[,-1]
+```
+
+```{r}
+#wgr_data <- read.csv("wgr_golf_rank.csv")
+#wgr_data <- wgr_data[,-1]
+```
+
+```{r}
+#pga_data <- left_join(all_data, wgr_data, by = c("player_name", "year"))
+#write.csv(pga_data, "pga_data_all.csv")
+```
+
+```{r}
+#new_data <- left_join(tee_all, ar_all, by=c('player_name', 'year')) %>%
+#  left_join(p4_all, by=c("player_name", "year")) %>%
+#  left_join(p3_all, by=c("player_name", "year"))
+```
+
+```{r}
+#write.csv(new_data, 'new_data.csv')
+```
+
+```{r}
+#write.csv(masters_all, 'masters_data.csv')
+```
+
+```{r}
+#write.csv(p5_all, 'par5_data.csv')
+```
+
