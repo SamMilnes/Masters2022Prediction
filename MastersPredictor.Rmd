@@ -24,6 +24,7 @@ pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Proje
 #View(sub2021)
 
 # Try using clustering to see if any factors are more important
+
 ```
 
 DEFINING COLUMN NAMES:
@@ -170,7 +171,7 @@ masters2022_list = list("Abraham Ancer",
                      "Kevin Na",
                      "Keita Nakajima",
                      "Joaquin Niemann",
-                     "Jose Mario Olazabal", #Check for spelling
+                     "Jose Mario Olazabal",
                      "Louis Oosthuizen",
                      "Ryan Palmer",
                      "James Piot",
@@ -207,7 +208,62 @@ library(dplyr)
 current_masters <- filter(pga, player_name %in% masters2022_list)
 
 current_masters <- current_masters[, -1]
-View(current_masters)
+#View(current_masters)
 
 ```
+
+Filter data to see stats from 2005 - 2021
+```{r}
+
+current_masters_0518_stats <- current_masters[which(current_masters$year < 2019),]
+View(current_masters_0518_stats)
+
+```
+
+Filter data to see stats from 2022
+```{r}
+
+current_masters_0518_stats <- current_masters[which(current_masters$year <= 2019),]
+View(current_masters_0518_stats)
+
+```
+
+Things to do:
+- Clean Data:
+  - Get rid of T in front of numbers in masters finish column
+  - Get rid of x_attempts column and hole proximity
+  - Clean score average column, fill in blanks with the median of all score         averages
+  - Clean holes column, fill in blanks with median of all holes
+  - clean gir_fair column, fill with median
+  - Change columns with ft as units to inches
+  - Fill in putting averages
+  - Fix scraper to pull in 2022 stats
+  
+  
+Cleaning Data  
+```{r}
+current_masters$masters_finish<-gsub("T","",as.character(current_masters$masters_finish))
+
+current_masters
+```
+
+  
+  
+
+
+Technique Ideas:
+
+- Logistic Regression to get probability of winning
+- linear regression to predict total score for weekend
+  - We are going to try to predict the final score response variable. To
+  predict for this year, we will pass in all the players data up until the
+  tournament.
+
+
+Create Training/Test Data:
+Clean up original data frame with all players from 2005:2019.
+  - use that data as test data to predict masters score
+create subset of 2021 data
+  - Use this as test data to calculate error rate etc....
+
 
