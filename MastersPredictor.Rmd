@@ -12,18 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 
 pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
-pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_past5.csv")
-View(pgaPast5)
-# pga <- pga[,-1]
-# 
-# 
-# pga <- subset(pga, !is.na(pga$masters_finish))
+#pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_past5.csv")
+#View(pgaPast5)
 
-
-#sub2021 <- pga[which(pga$year == 2021), ]
-#View(sub2021)
-
-# Try using clustering to see if any factors are more important
 
 ```
 
@@ -45,10 +36,6 @@ Driving Accuracy -> The percentage of time a tee shot comes to rest in the fairw
 Driving Distance -> The average number of yards per measured drive
 
 Gir -> (Greens in regulation) The percent of time a player was able to hit the green in regulation (greens hit in regulation/holes played)
-
-Hole_Proximity -> The average distance the ball comes to rest from the hole (in feet) after the player's approach shot.
-
-x_of_attempts -> 
 
 putts_round ->  The average number of total putts per round
 
@@ -223,21 +210,56 @@ View(current_masters_0518_stats)
 
 Things to do:
 - Clean Data:
-  - Get rid of T in front of numbers in masters finish column
-  - Get rid of x_attempts column and hole proximity
   - Clean score average column, fill in blanks with the median of all score         averages
   - Clean holes column, fill in blanks with median of all holes
   - clean gir_fair column, fill with median
-  - Change columns with ft as units to inches
   - Fill in putting averages
-  - Fix scraper to pull in 2022 stats
   
   
 Cleaning Data  
 ```{r}
-current_masters$masters_finish<-gsub("T","",as.character(current_masters$masters_finish))
 
-current_masters
+# Get rid of first column
+pga <- pga[, -1]
+
+# Get rid of x_attempts and hole proximity columns
+pga <- subset(pga, select = -c(hole_proximity, x_of_attempts))
+
+# Get rid of "T" in masters finish and ranking columns
+pga$masters_finish<-gsub("T","",as.character(pga$masters_finish))
+pga$ranking<-gsub("T","",as.character(pga$ranking))
+
+
+
+# Converting distance columns to inches
+
+pga_mat_fair <- stringr::str_extract_all(pga$prox_fair, "\\d+", simplify = TRUE)
+pga$prox_fair <- as.numeric(pga_mat_fair[, 1]) * 12 + as.numeric(pga_mat_fair[, 2])
+pga_mat_rough <- stringr::str_extract_all(pga$prox_rough, "\\d+", simplify = TRUE)
+pga$prox_rough <- as.numeric(pga_mat_rough[, 1]) * 12 + as.numeric(pga_mat_rough[, 2])
+pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
+pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
+
+
+# Fill in NA's for score_average column to median
+#pga$score_average[is.na(pga$score_average)] <- median(pga$score_average, na.rm = T)
+
+
+# Get rid of all rows that have "CU" for masters finish column. This indicates
+# That the player did not make the cut, if kept in, this would skew the total score column
+newPGA <- subset(pga, (pga$masters_finish != "CU"))
+newPGA2 <- subset(newPGA, newPGA$masters_finish != "WD")                 
+
+
+# Change the value in the masters finish column to 1 if "Win"
+newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1 
+
+#Get rid of NA's
+newPGA2 <- na.omit(newPGA2)
+
+View(newPGA)
+View(newPGA2)
+View(pga)
 ```
 
 
