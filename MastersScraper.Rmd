@@ -24,6 +24,13 @@ library(purrr)
 library(stargazer)
 ```
 
+```{r}
+
+#memory.limit()
+#(size=20000)
+
+```
+
 ```{r knitr-options, include = FALSE}
 knitr::opts_chunk$set(fig.align="center",
                       warning = FALSE,
@@ -52,186 +59,186 @@ https://www.pgatour.com/content/pgatour/stats/stat.02568.y2021.eoff.t041.html
 
 1. `top10`
 ```{r}
-get_variable_defintions(138)
+#get_variable_defintions(138)
 ```
 2. `sg_total`
 ```{r}
-get_variable_defintions(2675)
+#get_variable_defintions(2675)
 ```
 3. `sg_putt`
 ```{r}
-get_variable_defintions(2564)
+#get_variable_defintions(2564)
 ```
 4. `sg_t2g`
 ```{r}
-get_variable_defintions(2674)
+#get_variable_defintions(2674)
 ```
 5. `score_avg`
 ```{r}
-get_variable_defintions(120)
+#get_variable_defintions(120)
 ```
 6. `rounds`
 ```{r}
-print("Number of rounds played in year")
+#print("Number of rounds played in year")
 ```
 7. `driving_distance`
 ```{r}
-get_variable_defintions(101)
+#get_variable_defintions(101)
 ```
 9. `gir`
 ```{r}
-get_variable_defintions(103)
+#get_variable_defintions(103)
 ```
 10. `ranking`
 ```{r}
-get_variable_defintions(127)
+#get_variable_defintions(127)
 ```
 11. `wins`
 ```{r}
-print("Total number of 1st places")
+#print("Total number of 1st places")
 ```
 12. `putts_round`
 ```{r}
-get_variable_defintions(119)
+#get_variable_defintions(119)
 ```
 13. `scramble` 
 ```{r}
-get_variable_defintions(130)
+#get_variable_defintions(130)
 ```
 14. `par5_SA`
 ```{r}
-get_variable_defintions(144)
+#get_variable_defintions(144)
 ```
 15. `bounce_back`
 ```{r}
-get_variable_defintions(160)
+#get_variable_defintions(160)
 ```
 16. `driving_accuracy`
 ```{r}
-get_variable_defintions(102)
+#get_variable_defintions(102)
 ```
 17. `hole_proximity`
 ```{r}
-get_variable_defintions(331)
+#get_variable_defintions(331)
 ```
 18. `masters_finish`
 ```{r}
-print("Finish position in Masters tournament")
+#print("Finish position in Masters tournament")
 ```
 19. `masters_players`
 ```{r}
-print("Players who have played in at least one Masters tournament")
+#print("Players who have played in at least one Masters tournament")
 ```
 20. `wgr`
 ```{r}
-print("World sandlf Ranking in Week 13 - the week before Masters tournament")
+#print("World sandlf Ranking in Week 13 - the week before Masters tournament")
 ```
 21. `sg_approach`
 ```{r}
-get_variable_defintions(02568)
+#get_variable_defintions(02568)
 ```
 
 22. `sg_tee`
 ```{r}
-get_variable_defintions(02567)
+#get_variable_defintions(02567)
 ```
 
 23. `perc_tee`
 ```{r}
-get_variable_defintions(02341)
+#get_variable_defintions(02341)
 ```
 
 24.`left_rough`
 ```{r}
-get_variable_defintions(459)
+#get_variable_defintions(459)
 ```
 
 25.`right_rough`
 ```{r}
-get_variable_defintions(460)
+#get_variable_defintions(460)
 ```
 
 26. `fair_bunk`
 ```{r}
-get_variable_defintions(01008)
+#get_variable_defintions(01008)
 ```
 
 27.`gir_fair`
 ```{r}
-get_variable_defintions(190)
+#get_variable_defintions(190)
 ```
 
 28.`gir_notfair`
 ```{r}
-get_variable_defintions(199)
+#get_variable_defintions(199)
 ```
 
 29.`prox_fair`
 ```{r}
-get_variable_defintions(431)
+#get_variable_defintions(431)
 ```
 
 30.`prox_rough`
 ```{r}
-get_variable_defintions(437)
+#get_variable_defintions(437)
 ```
 
 31.`goforgreen`
 ```{r}
-get_variable_defintions(486)
+#get_variable_defintions(486)
 ```
 
 32. `sg_arg`
 ```{r}
-get_variable_defintions(02569)
+#get_variable_defintions(02569)
 ```
 
 33. `sand_save`
 ```{r}
-get_variable_defintions(111)
+#get_variable_defintions(111)
 ```
 
 34. `prox_arg`
 ```{r}
-get_variable_defintions(374)
+#get_variable_defintions(374)
 ```
 
 35. `putt_25`
 ```{r}
-get_variable_defintions(408)
+#get_variable_defintions(408)
 ```
 
 36. `putt_1525`
 ```{r}
-get_variable_defintions(02328)
+#get_variable_defintions(02328)
 ```
 
 37. `putt_1015`
 ```{r}
-get_variable_defintions(405)
+#get_variable_defintions(405)
 ```
 
 38. `putt_10`
 ```{r}
-get_variable_defintions(484)
+#get_variable_defintions(484)
 ```
 
 39. `par3_sa`
 ```{r}
-get_variable_defintions(171)
+#get_variable_defintions(171)
 ```
 
 40. `final_round_sa`
 ```{r}
-get_variable_defintions(118)
+#get_variable_defintions(118)
 ```
 
 ```{r}
-year = 2021
+year = 2022
 if (year == 2004 || year == 2005 || year == 2006){
   tourney = ".eoff.t022"
 }
-if (year == 2007 || year == 2008 || year == 2009 || year == 2010 || year == 2011 || year == 2012 || year == 2014 || year == 2015 || year == 2016 || year == 2017 || year == 2018 || year == 2021){
+if (year == 2007 || year == 2008 || year == 2009 || year == 2010 || year == 2011 || year == 2012 || year == 2014 || year == 2015 || year == 2016 || year == 2017 || year == 2018 || year == 2021 || year == 2022){
   tourney = ".eoff.t020"}
 if (year == 2019 || year == 2021){
   tourney = ".eoff.t041"
@@ -245,7 +252,7 @@ The following creates a scraper to scrape the needed data from www.pgatour.com/s
 
 ```{r}
 ## Create function to retrieve statistics from PGA website
-get_all_data <- function(stat, year = 2018){
+get_all_data <- function(stat, year = 2022){
 
   tourney = case_when(
   year == 2004 ~ ".eoff.t022",
@@ -266,6 +273,7 @@ get_all_data <- function(stat, year = 2018){
   year == 2019 ~ ".eoff.t041",
   year == 2020 ~ ".eoff.t020",
   year == 2021 ~ ".eoff.t041",
+  year == 2022 ~ ".eoff.t470",
   )
   
   if(year == 2020){
@@ -293,15 +301,16 @@ get_all_data <- function(stat, year = 2018){
 ```{r}
 paste("https://www.pgatour.com/stats/stat.",
                        120, ".","y",
-                       2004,
-                       '.eoff.t020',
+                       2022,
+                       '.eoff.t470',
                        ".html",
                        sep = "")
 ```
 
 ##Create list of years to collect data for
 ```{r}
-years <- c(2004:2019, 2021)
+#years <- c(2004:2021, 2022)
+years <- c(2022)
 print(years)
 ```
 
@@ -657,6 +666,11 @@ puerto rico, WGC, traditions, bay hill, shell - t483, t473, t475, t009, t020
 WGC, TB, Bay Hill, shell, valero
 WGC cadillac, 
 
+
+Valero Texas Open, Corales, valspar, The players, arnold palmer
+
+
+
 2004 - t008, t010, t009, t011, t022
 2005 - t008, t010, t009, t011, t022
 2006 - t008, t010, t009, t011, t022
@@ -677,129 +691,129 @@ WGC cadillac,
 2022 - 
 
 ```{r}
-get_past5 = function(yr, st){
-  my_data = list()
-  print(yr)
+#get_past5 = function(yr, st){
+#  my_data = list()
+#  print(yr)
   
-  year = yr
+#  year = yr
     
-  stat = st
+#  stat = st
   
-  for (i in 1:5){
+#  for (i in 1:5){
     
-    tourney_list = case_when(year == 2004 ~ c('t008', 't010', 't009', 't011', 't022'),
-                             year == 2005 ~ c('t008', 't010', 't009', 't011', 't022'),
-                             year == 2006 ~ c('t008', 't010', 't009', 't011', 't022'),
-                             year == 2007 ~ c('t010', 't475', 't009', 't473', 't020'),
-                             year == 2008 ~ c('t009', 't483', 't473', 't018', 't020'),
-                             year == 2009 ~ c('t483', 't473', 't475', 't009', 't020'),
-                             year == 2010 ~ c('t483', 't473', 't475', 't009', 't020'),
-                             year == 2011 ~ c('t483', 't473', 't475', 't009', 't020'),
-                             year == 2012 ~ c('t483', 't473', 't475', 't009', 't020'),
-                             year == 2013 ~ c('t473', 't475', 't009', 't020', 't041'),
-                             year == 2014 ~ c('t473', 't475', 't009', 't041', 't020'),
-                             year == 2015 ~ c('t473', 't475', 't009', 't041', 't020'),
-                             year == 2016 ~ c('t475', 't009', 't483', 't473', 't020'),
-                             year == 2017 ~ c('t475', 't009', 't473', 't010', 't020'),
-                             year == 2018 ~ c('t473', 't475', 't009', 't020', 't010'),
-                             year == 2019 ~ c('t010', 't009', 't011', 't475', 't041'),
-                             year == 2021 ~ c('t473', 't009', 't011', 't010', 't041'))
-    
-    pga_data_urls <- paste("https://www.pgatour.com/stats/stat.",
-                           stat, ".","y",
-                           year,
-                           ".eon.",
-                           tourney_list[i],
-                           ".html",
-                           sep = "")
-    
-    print(i)
-    
-    pg <- read_html(pga_data_urls)
-    tables <- html_nodes(pg, "table")
-    
-    t = try(stat_data <- data.frame(html_table(tables)))
-    
-    if("try-error" %in% class(t)) {
-      out = data.frame(Year = "NA", PLAYER.NAME = "NA", AVG = 0)
-      names(out)[3] = paste0("AVG_", i)
-    }
-    
-    else{
-      names(stat_data)[names(stat_data)=="X3"] <- "Year"
-      stat_data[3] <- year
-      names(stat_data)[8] <- "AVG"
-      
-      
-      out <- stat_data %>% select(Year, PLAYER.NAME, AVG)
-      names(out)[3] = paste0("AVG_", i)
-    }
-    
-    my_data[[i]] = out
-  }
-  
-  out = full_join(my_data[[1]], select(my_data[[2]], PLAYER.NAME, AVG_2), by = "PLAYER.NAME") %>% 
-    full_join(select(my_data[[3]], PLAYER.NAME, AVG_3), by = "PLAYER.NAME") %>%
-    full_join(select(my_data[[4]], PLAYER.NAME, AVG_4), by = "PLAYER.NAME") %>% 
-    full_join(select(my_data[[5]], PLAYER.NAME, AVG_5), by = "PLAYER.NAME")
-  
-  out$Year = year
-  
-  out$count <- apply(out[3:7], 1, function(x) sum(!is.na(x)))
-  
-  out = out %>% mutate(AVG = rowMeans(select(.,AVG_1, AVG_2, AVG_3, AVG_4, AVG_5), na.rm=TRUE)) %>% select(Year, PLAYER.NAME, AVG, count)
-  
-  names(out) = c("Year", "player_name", "AVG", "count")
+#    tourney_list = case_when(year == 2004 ~ c('t008', 't010', 't009', 't011', 't022'),
+#                             year == 2005 ~ c('t008', 't010', 't009', 't011', 't022'),
+#                            year == 2006 ~ c('t008', 't010', 't009', 't011', 't022'),
+#                             year == 2007 ~ c('t010', 't475', 't009', 't473', 't020'),
+#                             year == 2008 ~ c('t009', 't483', 't473', 't018', 't020'),
+#                             year == 2009 ~ c('t483', 't473', 't475', 't009', 't020'),
+#                             year == 2010 ~ c('t483', 't473', 't475', 't009', 't020'),
+##                             year == 2011 ~ c('t483', 't473', 't475', 't009', 't020'),
+#                             year == 2012 ~ c('t483', 't473', 't475', 't009', 't020'),
+#                             year == 2013 ~ c('t473', 't475', 't009', 't020', 't041'),
+#                             year == 2014 ~ c('t473', 't475', 't009', 't041', 't020'),
+#                            year == 2015 ~ c('t473', 't475', 't009', 't041', 't020'),
+#                             year == 2016 ~ c('t475', 't009', 't483', 't473', 't020'),
+#                             year == 2017 ~ c('t475', 't009', 't473', 't010', 't020'),
+#                             year == 2018 ~ c('t473', 't475', 't009', 't020', 't010'),
+#                             year == 2019 ~ c('t010', 't009', 't011', 't475', 't041'),
+#                             year == 2021 ~ c('t473', 't009', 't011', 't010', 't041'))
+#    
+#    pga_data_urls <- paste("https://www.pgatour.com/stats/stat.",
+#                           stat, ".","y",
+#                           year,
+#                           ".eon.",
+#                           tourney_list[i],
+#                           ".html",
+#                           sep = "")
+#    
+#    print(i)
+#    
+#    pg <- read_html(pga_data_urls)
+#    tables <- html_nodes(pg, "table")
+#    
+#    t = try(stat_data <- data.frame(html_table(tables)))
+#   
+#    if("try-error" %in% class(t)) {
+#      out = data.frame(Year = "NA", PLAYER.NAME = "NA", AVG = 0)
+#      names(out)[3] = paste0("AVG_", i)
+#    }
+#    
+#    else{
+#      names(stat_data)[names(stat_data)=="X3"] <- "Year"
+#      stat_data[3] <- year
+#      names(stat_data)[8] <- "AVG"
+#      
+#      
+#      out <- stat_data %>% select(Year, PLAYER.NAME, AVG)
+#      names(out)[3] = paste0("AVG_", i)
+#    }
+#    
+#    my_data[[i]] = out
+#  }
+#  
+#  out = full_join(my_data[[1]], select(my_data[[2]], PLAYER.NAME, AVG_2), by = "PLAYER.NAME") %>% 
+#    full_join(select(my_data[[3]], PLAYER.NAME, AVG_3), by = "PLAYER.NAME") %>%
+#    full_join(select(my_data[[4]], PLAYER.NAME, AVG_4), by = "PLAYER.NAME") %>% 
+#    full_join(select(my_data[[5]], PLAYER.NAME, AVG_5), by = "PLAYER.NAME")
+#  
+#  out$Year = year
+#  
+#  out$count <- apply(out[3:7], 1, function(x) sum(!is.na(x)))
+#  
+#  out = out %>% mutate(AVG = rowMeans(select(.,AVG_1, AVG_2, AVG_3, AVG_4, AVG_5), na.rm=TRUE)) %>% select(Year, PLAYER.NAME, AVG, count)
+#
+#  names(out) = c("Year", "player_name", "AVG", "count")
+#
+#  return(out)
+#}
 
-  return(out)
-}
-
-past5_2018 = get_past5(2018, "120")
-
+#past5_2018 = get_past5(2018, "120")
+#
 ```
 
 ## Past 5 Scoring Average
 ```{r}
-past5_sa = lapply(years, get_past5, st = "120")
-sa_5 = bind_rows(past5_sa)
-names(sa_5)[3] = "past5_sa"
-names(sa_5)[4] = "past5_n_sa"
+#past5_sa = lapply(years, get_past5, st = "120")
+#sa_5 = bind_rows(past5_sa)
+#names(sa_5)[3] = "past5_sa"
+#(sa_5)[4] = "past5_n_sa"
 ```
 
 ## Past 5 SG t2g
 ```{r}
-past5_sgt2g = lapply(years, get_past5, st = "02674")
-sgt2g_5 = bind_rows(past5_sgt2g)
-names(sgt2g_5)[3] = "past5_sgt2g"
-names(sgt2g_5)[4] = "past5_n_sgt2g"
+#past5_sgt2g = lapply(years, get_past5, st = "02674")
+#sgt2g_5 = bind_rows(past5_sgt2g)
+#names(sgt2g_5)[3] = "past5_sgt2g"
+#names(sgt2g_5)[4] = "past5_n_sgt2g"
 ```
 
 ## Past 5 SG putt
 ```{r}
-past5_sgputt = lapply(years, get_past5, st = "02564")
-sgputt_5 = bind_rows(past5_sgputt)
-names(sgputt_5)[3] = "past5_sgputt"
-names(sgputt_5)[4] = "past5_n_sgputt"
+#past5_sgputt = lapply(years, get_past5, st = "02564")
+#sgputt_5 = bind_rows(past5_sgputt)
+#names(sgputt_5)[3] = "past5_sgputt"
+#names(sgputt_5)[4] = "past5_n_sgputt"
 ```
 
 ## Past 5 SG arg
 ```{r}
-past5_sgarg = lapply(years, get_past5, st = "02568")
-sgarg_5 = bind_rows(past5_sgarg)
-names(sgarg_5)[3] = "past5_sgarg"
-names(sgarg_5)[4] = "past5_n_sgarg"
+#past5_sgarg = lapply(years, get_past5, st = "02568")
+#sgarg_5 = bind_rows(past5_sgarg)
+#names(sgarg_5)[3] = "past5_sgarg"
+#names(sgarg_5)[4] = "past5_n_sgarg"
 ```
 
 ## Join Past 5 data
 ```{r}
-past5_data = sgt2g_5 %>% 
-  full_join(sgputt_5, by = c("Year", "player_name")) %>%
-  full_join(sgarg_5, by = c("Year", "player_name")) %>%
-  full_join(sa_5, by = c("Year", "player_name"))
+#past5_data = sgt2g_5 %>% 
+#  full_join(sgputt_5, by = c("Year", "player_name")) %>%
+#  full_join(sgarg_5, by = c("Year", "player_name")) %>%
+#  full_join(sa_5, by = c("Year", "player_name"))
 ```
 
 ```{r}
-write.csv(past5_data, file = "2022Masters_past5.csv") 
+#write.csv(past5_data, file = "2022FinalMasters_past5.csv") 
 ```
 
 
@@ -903,7 +917,7 @@ all_data <- left_join(all_data, putts_all, by=c("player_name", "year")) %>%
   left_join(p3_all, by=c("player_name", "year")) %>%
   left_join(p5_all, by=c("player_name", "year"))
 
-all_data <- all_data[!(all_data$player_name=="Richard Johnson"),]
+#all_data <- all_data[!(all_data$player_name=="Richard Johnson"),]
 
 all_data <- left_join(all_data,cov_all, by=c("player_name", "year")) %>%
   left_join(lr_all, by=c("player_name", "year")) %>%
@@ -922,7 +936,7 @@ all_data <- left_join(all_data,cov_all, by=c("player_name", "year")) %>%
   left_join(putt10_all, by=c("player_name", "year")) %>%
   left_join(finround_all, by=c("player_name", "year"))
 
-all_data <- right_join(all_data, masters_all, by=c("player_name", "year"))
+#all_data <- right_join(all_data, masters_all, by=c("player_name", "year"))
 
 all_data <- all_data %>% arrange(player_name, year)
 ## Change NAs in wins and top 10 to 0 for binary
@@ -934,7 +948,7 @@ all_data$masters_finish
 
 ## Create csv file
 ```{r}
-write.csv(all_data, file = "C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv") 
+write.csv(all_data, file = "C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022FinalMasters_pred_data.csv") 
 ```
 
 ```{r}

@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
 pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_past5.csv")
-
+View(pgaPast5)
 # pga <- pga[,-1]
 # 
 # 
@@ -215,18 +215,11 @@ current_masters <- current_masters[, -1]
 Filter data to see stats from 2005 - 2021
 ```{r}
 
-current_masters_0518_stats <- current_masters[which(current_masters$year < 2019),]
-View(current_masters_0518_stats)
-
-```
-
-Filter data to see stats from 2022
-```{r}
-
 current_masters_0518_stats <- current_masters[which(current_masters$year <= 2019),]
 View(current_masters_0518_stats)
 
 ```
+
 
 Things to do:
 - Clean Data:
@@ -247,8 +240,47 @@ current_masters$masters_finish<-gsub("T","",as.character(current_masters$masters
 current_masters
 ```
 
-  
-  
+
+
+
+This is all the current players stats who have played in 2022 and will be
+competing in the masters this year. There is also some players playing that are
+not in this list because they are playing in the masters but haven't played in 
+2022 season yet[etc.. tiger woods, Bryson Dechambeau]. We are going to predict 
+the top 10 players from this dataset.
+```{r}
+
+data <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022FinalMasters_pred_data.csv")
+#View(data)
+
+predict_2022_masters <- filter(data, player_name %in% masters2022_list)
+
+```
+
+
+Clean Masters 2022 Data for prediction
+```{r}
+
+# Geting rid of T in front of some ranks
+predict_2022_masters$ranking<-gsub("T","",as.character(predict_2022_masters$ranking))
+
+# Get rid of x_attempts and hole proximity column
+predict_2022_masters <- subset(predict_2022_masters,
+                               select = -c(hole_proximity, x_of_attempts))
+
+
+# Change columns with ft as units to inches
+mat_fair <- stringr::str_extract_all(predict_2022_masters$prox_fair, "\\d+", simplify = TRUE)
+predict_2022_masters$prox_fair <- as.numeric(mat_fair[, 1]) * 12 + as.numeric(mat_fair[, 2])
+mat_rough <- stringr::str_extract_all(predict_2022_masters$prox_rough, "\\d+", simplify = TRUE)
+predict_2022_masters$prox_rough <- as.numeric(mat_rough[, 1]) * 12 + as.numeric(mat_rough[, 2])
+mat_arg <- stringr::str_extract_all(predict_2022_masters$prox_arg, "\\d+", simplify = TRUE)
+predict_2022_masters$prox_arg <- as.numeric(mat_arg[, 1]) * 12 + as.numeric(mat_arg[, 2])
+
+
+#View(predict_2022_masters)
+
+```
 
 
 Technique Ideas:
@@ -265,5 +297,6 @@ Clean up original data frame with all players from 2005:2019.
   - use that data as test data to predict masters score
 create subset of 2021 data
   - Use this as test data to calculate error rate etc....
+  
 
 
