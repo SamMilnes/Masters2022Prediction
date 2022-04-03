@@ -948,7 +948,7 @@ all_data$masters_finish
 
 ## Create csv file
 ```{r}
-write.csv(all_data, file = "C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022FinalMasters_pred_data.csv") 
+write.csv(all_data, file = "C:\\Users\\milness\\Documents\\Masters2022Predicition\\masterspred20212022.csv") 
 ```
 
 ```{r}

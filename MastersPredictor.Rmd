@@ -9,14 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-
-pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
-#pgaPast5 <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_past5.csv")
-#View(pgaPast5)
-
-
-```
 
 DEFINING COLUMN NAMES:
 
@@ -100,92 +92,8 @@ total_score -> The players total score from that year at the masters
 List of players playing in 2022 Masters
 ```{r}
 
-masters2022_list = list("Abraham Ancer",
-                     "Daniel Berger",
-                     "Christiaan Bezuidenhout",
-                     "Sam Burns",
-                     "Patrick Cantlay",
-                     "Paul Casey",
-                     "Cameron Champ",
-                     "Stewart Cink",
-                     "Corey Conners",
-                     "Fred Couples",
-                     "Cameron Davis",
-                     "Bryson DeChambeau",
-                     "Harry English",
-                     "Tony Finau",
-                     "Matthew Fitzpatrick",
-                     "Tommy Fleetwood",
-                     "Sergio Garcia",
-                     "Lucas Glover",
-                     "Talor Gooch",
-                     "Austin Greaser",
-                     "Steward Hagestad",
-                     "Brian Harman",
-                     "Padraig Harrington",
-                     "Tyrrell Hatton",
-                     "Lucas Herbert",
-                     "Garrick Higgo",
-                     "Harry Higgs",
-                     "Tom Hoge",
-                     "Max Homa",
-                     "Billy Horschel",
-                     "Viktor Hovland",
-                     "Mackenzie Hughes",
-                     "Sungjae Im",
-                     "Aaron Jarvis",
-                     "Dustin Johnson",
-                     "Zach Johnson",
-                     "Takumi Kanaya",
-                     "Si Woo Kim",
-                     "Kevin Kisner",
-                     "Brooks Koepka",
-                     "Jason Kokrak",
-                     "Bernhard Langer",
-                     "Kyoung-Hoon Lee",
-                     "Min Woo Lee",
-                     "Marc Leishman",
-                     "Luke List",
-                     "Shane Lowry",
-                     "Sandy Lyle",
-                     "Robert MacIntyre",
-                     "Hideki Matsuyama",
-                     "Rory McIlroy",
-                     "Guido Migliozzi",
-                     "Larry Mize",
-                     "Francesco Molinari",
-                     "Collin Morikawa",
-                     "Kevin Na",
-                     "Keita Nakajima",
-                     "Joaquin Niemann",
-                     "Jose Mario Olazabal",
-                     "Louis Oosthuizen",
-                     "Ryan Palmer",
-                     "James Piot",
-                     "Jon Rahm",
-                     "Patrick Reed",
-                     "Justin Rose",
-                     "Xander Schauffele",
-                     "Scottie Scheffler",
-                     "Charl Schwartzel",
-                     "Adam Scott",
-                     "Laird Shepherd",
-                     "Webb Simpson",
-                     "Vijay Singh",
-                     "Camerson Smith",
-                     "Jordon Spieth",
-                     "Sepp Straka",
-                     "Hudson Swafford",
-                     "Justin Thomas",
-                     "Erik van Rooyen",
-                     "Bubba Watson",
-                     "Mike Weir",
-                     "Lee Westwood",
-                     "Danny Willet",
-                     "Matthew Wolff",
-                     "Gary Woodland",
-                     "Tiger Woods",
-                     "Will Zalatoris")
+masters_list <- read.csv("2022MastersList.csv")
+
 ```
 
 Filter data to only players playing in Masters this year.
@@ -216,8 +124,10 @@ Things to do:
   - Fill in putting averages
   
   
-Cleaning Data  
+Cleaning Training Data
 ```{r}
+
+pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
 
 # Get rid of first column
 pga <- pga[, -1]
@@ -257,9 +167,13 @@ newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1
 #Get rid of NA's
 newPGA2 <- na.omit(newPGA2)
 
-View(newPGA)
-View(newPGA2)
-View(pga)
+# Drop player name column
+newPGA2 <- newPGA2[, -2]
+
+
+# Cleaned Data-frame to use for testing
+#View(newPGA2)
+
 ```
 
 
@@ -270,12 +184,59 @@ competing in the masters this year. There is also some players playing that are
 not in this list because they are playing in the masters but haven't played in 
 2022 season yet[etc.. tiger woods, Bryson Dechambeau]. We are going to predict 
 the top 10 players from this dataset.
+
+Players missing from this list:
+ - Rory Mcllory
+ - Bryson DeChambeau
+ - Harris English
+ - Thomas Pieters
+ - Harold Varner
+ - Takumi Kanaya
+ - Min Woo Lee
+ - Lee Westwood
+ - Bubba Watson
+ - Robert MacIntyre
+ - Kyoung-Hoon Lee
+ - Guido Migliozzi
+ - Padraig Harrington
+ - Keita Nakajima
+ - Stewart Hagestad
+ - Bernhard Langer
+ - Aaron Jarvis
+ - Larry Mize
+ - Laird Shepherd
+ - Austin Greaser
+ - Jose Maria Olazabal
+ - Fred Couples
+ - Vijay Singh
+ - James Piot
+ - Mike Weir
+ - Sandy Lyle
+ - Tiger Woods
+ 
+For all the players who haven't played in 2022 we need to find data from the
+last year they played.
+
+For all the players who played in 2022 but the scraper did not get their data,
+we should manually put it in for predictions. We should find which variables
+we are using first, so we do not have to get as much data.
+
+
+
+
+
+All data from 2021 & 2022 pga seasons
 ```{r}
 
-data <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022FinalMasters_pred_data.csv")
+data <- read.csv("2022FinalMasters_pred_data.csv")
 #View(data)
 
-predict_2022_masters <- filter(data, player_name %in% masters2022_list)
+predict_2022_masters <- subset(data, data$player_name %in% masters_list$player_name)
+View(predict_2022_masters)
+
+ 
+data20212022 <- read.csv("masterspred20212022.csv")
+#View(data20212022)
 
 ```
 
@@ -300,7 +261,7 @@ mat_arg <- stringr::str_extract_all(predict_2022_masters$prox_arg, "\\d+", simpl
 predict_2022_masters$prox_arg <- as.numeric(mat_arg[, 1]) * 12 + as.numeric(mat_arg[, 2])
 
 
-#View(predict_2022_masters)
+View(predict_2022_masters)
 
 ```
 
@@ -320,5 +281,95 @@ Clean up original data frame with all players from 2005:2019.
 create subset of 2021 data
   - Use this as test data to calculate error rate etc....
   
+
+
+Linear Regression:
+```{r}
+#Splitting data in training and test data
+
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+data.train <- subset(data.train, select = -c(masters_finish))
+data.train <- data.train[, -1]
+
+
+
+
+# Getting all data from the 2021 season.
+data.test <- newPGA2[which(newPGA2$year == 2021),]
+
+
+
+# Selecting Model Variables
+data.fit <- lm(total_score ~ ., data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - , data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green , data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save, data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa, data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa, data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa
+               - sg_tee, data = data.train)
+summary(data.fit)
+
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa
+               - sg_tee - sg_t2g, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa
+               - sg_tee - sg_t2g - sg_ar, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa
+               - sg_tee - sg_t2g - sg_ar - putt_25, data = data.train)
+summary(data.fit)
+
+data.fit <- lm(total_score ~ . -putt_10 - sg_total - go_for_green - sand_save
+               - finround_sa - sg_putt - wins - par3_sa - par4_sa
+               - sg_tee - sg_t2g - sg_ar - putt_25 - covered_tee, data = data.train)
+summary(data.fit)
+
+```
+
 
 
