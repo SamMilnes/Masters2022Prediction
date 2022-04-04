@@ -10,3 +10,99 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+```{r}
+
+pga <- read.csv("2022Masters_pred_data.csv")
+
+# Get rid of first column
+pga <- pga[, -1]
+
+# Get rid of x_attempts and hole proximity columns
+pga <- subset(pga, select = -c(hole_proximity, x_of_attempts))
+
+# Get rid of "T" in masters finish and ranking columns
+pga$masters_finish<-gsub("T","",as.character(pga$masters_finish))
+pga$ranking<-gsub("T","",as.character(pga$ranking))
+
+
+
+# Converting distance columns to inches
+
+pga_mat_fair <- stringr::str_extract_all(pga$prox_fair, "\\d+", simplify = TRUE)
+pga$prox_fair <- as.numeric(pga_mat_fair[, 1]) * 12 + as.numeric(pga_mat_fair[, 2])
+pga_mat_rough <- stringr::str_extract_all(pga$prox_rough, "\\d+", simplify = TRUE)
+pga$prox_rough <- as.numeric(pga_mat_rough[, 1]) * 12 + as.numeric(pga_mat_rough[, 2])
+pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
+pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
+
+
+# Fill in NA's for score_average column to median
+#pga$score_average[is.na(pga$score_average)] <- median(pga$score_average, na.rm = T)
+
+
+# Get rid of all rows that have "CU" for masters finish column. This indicates
+# That the player did not make the cut, if kept in, this would skew the total score column
+newPGA <- subset(pga, (pga$masters_finish != "CU"))
+newPGA2 <- subset(newPGA, newPGA$masters_finish != "WD")                 
+
+
+# Change the value in the masters finish column to 1 if "Win"
+newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1 
+
+#Get rid of NA's
+newPGA2 <- na.omit(newPGA2)
+
+# Drop player name column
+newPGA2 <- newPGA2[, -2]
+
+
+# Cleaned Data-frame to use for testing
+#View(newPGA2)
+
+```
+
+
+```{r}
+#Splitting data in training and test data
+
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+#data.train <- subset(data.train, select = -c(masters_finish))
+data.train <- data.train[, -1]
+
+
+
+
+# Getting all data from the 2021 season.
+data.test <- newPGA2[which(newPGA2$year == 2021),]
+```
+
+
+
+
+```{}
+
+if masters finish < 11, 1 if not 0
+
+
+
+
+
+
+
+```
+
+```{r}
+masters.logisticReg <- glm(total_score ~ driving_distance + sg_putt +
+                ranking + rounds + gir + top_10 + putts_round,
+data = data.train, family = binomial)
+
+```
+
+
+
+
+
+
