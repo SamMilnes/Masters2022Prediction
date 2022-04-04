@@ -10,3 +10,166 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+```{r}
+set.seed(8392)
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+model.lm <- train(total_score ~ driving_distance + sg_putt +
+    ranking + rounds + gir + top_10 +
+      putts_round, data = data.train,
+      method = "lm", trControl = ctrl)
+print(model.lm)
+model.lm$resample
+
+
+
+#install.packages("caret")
+```
+
+
+
+
+```{r}
+
+pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
+
+# Get rid of first column
+pga <- pga[, -1]
+# Get rid of x_attempts and hole proximity columns
+pga <- subset(pga, select = -c(hole_proximity, x_of_attempts))
+# Get rid of "T" in masters finish and ranking columns
+pga$masters_finish<-gsub("T","",as.character(pga$masters_finish))
+pga$ranking<-gsub("T","",as.character(pga$ranking))
+# Converting distance columns to inches
+pga_mat_fair <- stringr::str_extract_all(pga$prox_fair, "\\d+", simplify = TRUE)
+pga$prox_fair <- as.numeric(pga_mat_fair[, 1]) * 12 + as.numeric(pga_mat_fair[, 2])
+pga_mat_rough <- stringr::str_extract_all(pga$prox_rough, "\\d+", simplify = TRUE)
+pga$prox_rough <- as.numeric(pga_mat_rough[, 1]) * 12 + as.numeric(pga_mat_rough[, 2])
+pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
+pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
+
+
+# Fill in NA's for score_average column to median
+#pga$score_average[is.na(pga$score_average)] <- median(pga$score_average, na.rm = T)
+# Get rid of all rows that have "CU" for masters finish column. This indicates
+# That the player did not make the cut, if kept in, this would skew the total score column
+newPGA <- subset(pga, (pga$masters_finish != "CU"))
+newPGA2 <- subset(newPGA, newPGA$masters_finish != "WD")
+# Change the value in the masters finish column to 1 if "Win"
+newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1
+#Get rid of NA's
+newPGA2 <- na.omit(newPGA2)
+testData2021 <- newPGA2
+# Drop player name column
+newPGA2 <- newPGA2[, -2]
+# Cleaned Data-frame to use for testing
+#View(newPGA2)
+
+```
+
+
+```{r}
+
+
+#View(testData2021)
+testData2021 <- testData2021[which(testData2021$year == 2021),]
+testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
+testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
+#View(testData2021)
+# Actual top 10
+top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
+top10
+top10Final <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Final
+View(top10Final)
+top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Finishers
+
+
+```
+
+
+```{r}
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+data.train <- subset(data.train, select = -c(masters_finish))
+data.train <- data.train[, -1]
+
+
+
+# Getting all data from the 2021 season.
+data.test <- newPGA2[which(newPGA2$year == 2021),]
+View(data.train)
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+
+
+
+
+
+#Splitting data in training and test data
+# Getting all data before 2021 season
+
+
+#Splitting data in training and test data
+
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+data.train <- subset(data.train, select = -c(masters_finish))
+data.train <- data.train[, -1]
+
+
+
+
+# Getting all data from the 2021 season.
+data.test <- newPGA2[which(newPGA2$year == 2021),]
+
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+
+
+
+
+```
+
+
+```{r}
+library(leaps)
+data.reg <- regsubsets(total_score ~., data = data.train)
+data_reg.summary <- summary(data.reg)
+#data_reg.summary
+which.max(data_reg.summary$adjr2)
+#plot(data_reg.summary$adjr2)
+which.min(data_reg.summary$cp)
+#plot(data_reg.summary$cp)
+cbind(Cp = summary(data.reg)$cp,
+  Adj_r2 = summary(data.reg)$adjr2)
+
+
+data_reg.summary$which[8,]
+
+
+masters.lin_reg <- lm(total_score ~ driving_distance + sg_putt +
+                ranking + rounds + gir + top_10 + putts_round + gir_not_fair, data = data.train)
+#summary(masters.lin_reg)
+# Drop gir_not_fair due to high p-value
+masters.lin_regFinal <- lm(total_score ~ driving_distance + sg_putt +
+                ranking + rounds + gir + top_10 + putts_round,
+data = data.train)
+summary(masters.lin_regFinal)
+```
+
+
+
+```{r}
+prediction <- predict(masters.lin_regFinal, newdata = data.test)
+
+
+
+
+
+```
+
