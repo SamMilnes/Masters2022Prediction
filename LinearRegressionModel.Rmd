@@ -10,25 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
-set.seed(8392)
-library(caret)
-ctrl <- trainControl(method = "cv", number = 10)
-model.lm <- train(total_score ~ driving_distance + sg_putt +
-    ranking + rounds + gir + top_10 +
-      putts_round, data = data.train,
-      method = "lm", trControl = ctrl)
-print(model.lm)
-model.lm$resample
 
-
-
-#install.packages("caret")
-```
-
-
-
-
+Loading in the data
 ```{r}
 
 pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
@@ -68,27 +51,8 @@ newPGA2 <- newPGA2[, -2]
 ```
 
 
-```{r}
 
-
-#View(testData2021)
-testData2021 <- testData2021[which(testData2021$year == 2021),]
-testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
-testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
-#View(testData2021)
-# Actual top 10
-top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
-top10
-top10Final <- subset(top10, select = c(player_name, masters_finish, total_score))
-top10Final
-View(top10Final)
-top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
-top10Finishers
-
-
-```
-
-
+Splitting the data into training and testing data
 ```{r}
 # Getting all data before 2021 season
 data.train <- newPGA2[which(newPGA2$year < 2021),]
@@ -101,40 +65,15 @@ data.train <- data.train[, -1]
 
 # Getting all data from the 2021 season.
 data.test <- newPGA2[which(newPGA2$year == 2021),]
-View(data.train)
-# Getting all data before 2021 season
-data.train <- newPGA2[which(newPGA2$year < 2021),]
-
-
-
-
-
-#Splitting data in training and test data
-# Getting all data before 2021 season
-
-
-#Splitting data in training and test data
-
-# Getting all data before 2021 season
-data.train <- newPGA2[which(newPGA2$year < 2021),]
-data.train$ranking <- as.numeric(as.character(data.train$ranking))
-#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
-data.train <- subset(data.train, select = -c(masters_finish))
-data.train <- data.train[, -1]
-
-
-
-
-# Getting all data from the 2021 season.
-data.test <- newPGA2[which(newPGA2$year == 2021),]
-
-data.train$ranking <- as.numeric(as.character(data.train$ranking))
-
-
+data.test$ranking <- as.numeric(as.character(data.test$ranking))
 
 
 ```
 
+
+
+Preforming regsubsets on the data to find the best predictors. Here we can see
+that the optimal number of predictors is 8 and they are listed below.
 
 ```{r}
 library(leaps)
@@ -151,25 +90,78 @@ cbind(Cp = summary(data.reg)$cp,
 
 data_reg.summary$which[8,]
 
+```
 
+
+Creating the linear regression model
+```{r}
 masters.lin_reg <- lm(total_score ~ driving_distance + sg_putt +
                 ranking + rounds + gir + top_10 + putts_round + gir_not_fair, data = data.train)
-#summary(masters.lin_reg)
+# summary(masters.lin_reg)
 # Drop gir_not_fair due to high p-value
 masters.lin_regFinal <- lm(total_score ~ driving_distance + sg_putt +
                 ranking + rounds + gir + top_10 + putts_round,
 data = data.train)
 summary(masters.lin_regFinal)
 ```
+Using anova to test if the model without gir_not_fair is better than the model
+with it
+H0: masters.lin_reg = masters.lin_regFinal
+Ha: masters.lin_reg != masters.lin_regFinal
+```{r}
+library(car)
+
+anova(masters.lin_regFinal, masters.lin_reg)
+
+```
+Here we can see that it does not make sense to keep the gir_not_fair predictor
+because we get a very high p-value after we conduct the anova test. So our
+final regression model will stay the same. So we fail to reject the null
+hypothesis.
 
 
 
+Preforming cross validation with the caret library.
+```{r}
+#install.packages("caret")
+set.seed(8392)
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+model.lm <- train(total_score ~ driving_distance + sg_putt +
+    ranking + rounds + gir + top_10 +
+      putts_round, data = data.train,
+      method = "lm", trControl = ctrl)
+print(model.lm)
+model.lm$resample
+
+
+```
+
+
+
+# Printing out the top ten finishers from the 2021 masters. I am going to use
+this to my predicted top ten for the 2021 masters.
+```{r}
+
+#View(testData2021)
+testData2021 <- testData2021[which(testData2021$year == 2021),]
+testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
+testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
+#View(testData2021)
+# Actual top 10
+top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
+top10
+top10Final <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Final
+View(top10Final)
+top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Finishers
+```
+
+
+Created the prediction function with my regression model and the test data set.
 ```{r}
 prediction <- predict(masters.lin_regFinal, newdata = data.test)
-
-
-
-
-
+prediction
 ```
 
