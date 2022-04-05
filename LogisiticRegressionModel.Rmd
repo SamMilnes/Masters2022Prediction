@@ -51,7 +51,7 @@ newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1
 
 #Get rid of NA's
 newPGA2 <- na.omit(newPGA2)
-
+testData2021 <- newPGA2
 # Drop player name column
 newPGA2 <- newPGA2[, -2]
 
@@ -82,10 +82,20 @@ data.test <- newPGA2[which(newPGA2$year == 2021),]
 
 
 
-```{}
+```{r}
 
-if masters finish < 11, 1 if not 0
+#Adding column
+#1 if the golfer finished in the top 10 
+#0 if outside the top 10
 
+newPGA2$masters_finish <- as.numeric(as.character(newPGA2$masters_finish))
+
+newPGA2$masters_top_10 <- ifelse(newPGA2$masters_finish < 11, 1, 0)
+
+
+data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+
+data.train$masters_top_10 <- ifelse(data.train$masters_finish < 11, 1, 0)
 
 
 
@@ -95,10 +105,28 @@ if masters finish < 11, 1 if not 0
 ```
 
 ```{r}
-masters.logisticReg <- glm(total_score ~ driving_distance + sg_putt +
+masters.logisticReg <- glm(masters_top_10 ~ driving_distance + sg_putt +
                 ranking + rounds + gir + top_10 + putts_round,
 data = data.train, family = binomial)
 
+masters.logisticReg
+
+```
+
+```{r}
+#View(testData2021)
+testData2021 <- testData2021[which(testData2021$year == 2021),]
+testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
+testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
+#View(testData2021)
+# Actual top 10
+top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
+top10
+top10Final <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Final
+View(top10Final)
+top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Finishers
 ```
 
 
