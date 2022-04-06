@@ -9,6 +9,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Add these stats to the 2022 Data
+player	Driving Distance	sg_putt	ranking	rounds	gir	top_10	putts_round
+Tiger	299.4	-0.634	18	23	0.6488	2	29.21
+bubba	291.3	-0.309	66	12	0.6443	0	28.83
+bryson	323.7	0.456	14	34	0.6715	9	28.64
+rory	320.1	0.247	9	18	0.6451	2	28.28
+Pieters	308.1	-0.451	34	8	0.5278	0	29.13
+
+
 
 
 Loading in the data
@@ -102,6 +111,7 @@ masters.lin_reg <- lm(total_score ~ driving_distance + sg_putt +
 masters.lin_regFinal <- lm(total_score ~ driving_distance + sg_putt +
                 ranking + rounds + gir + top_10 + putts_round,
 data = data.train)
+
 summary(masters.lin_regFinal)
 ```
 Using anova to test if the model without gir_not_fair is better than the model
@@ -139,7 +149,7 @@ model.lm$resample
 
 
 
-# Printing out the top ten finishers from the 2021 masters. I am going to use
+Printing out the top ten finishers from the 2021 masters. I am going to use
 this to my predicted top ten for the 2021 masters.
 ```{r}
 
@@ -162,6 +172,14 @@ top10Finishers
 Created the prediction function with my regression model and the test data set.
 ```{r}
 prediction <- predict(masters.lin_regFinal, newdata = data.test)
-prediction
+#prediction
+
+finalTestData <- testData2021
+finalTestData$predictedFinalScore <- prediction
+FinalTestDataSub <- subset(finalTestData, select =  c(year, player_name, total_score,
+                                            masters_top_10, predictedFinalScore))
+
+FinalTestDataSub[order(FinalTestDataSub$predictedFinalScore, decreasing = FALSE),]  
+
 ```
 
