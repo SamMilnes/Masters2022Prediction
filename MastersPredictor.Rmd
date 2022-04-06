@@ -247,6 +247,8 @@ Pieters	<- c(2022, "Thomas Pieters", 308.1,	-0.451,	34,	8,	52.78,	0,	29.13)
 
 predictFinal <- rbind(predict_data, tiger, bubba, bryson, rory, Pieters)
 
+# write.csv(predictFinal, file = "C:\\Users\\milness\\Documents\\Masters2022Predicition\\Masters2022FinalPredictionData.csv") 
+
 data20212022 <- read.csv("masterspred20212022.csv")
 
 
