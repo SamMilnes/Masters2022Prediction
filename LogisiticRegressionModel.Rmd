@@ -153,6 +153,8 @@ testData2021$top_10_prob <- myprobability2
 FinalTestDataSub <- subset(testData2021, select =  c(year, player_name, total_score,
                                             masters_top_10, top_10_prob))
 
+FinalTestDataSub[order(FinalTestDataSub$top_10_prob, decreasing = FALSE),]
+
 
 
 ```
