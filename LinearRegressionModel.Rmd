@@ -71,7 +71,6 @@ data.train <- subset(data.train, select = -c(masters_finish))
 data.train <- data.train[, -1]
 
 
-
 # Getting all data from the 2021 season.
 data.test <- newPGA2[which(newPGA2$year == 2021),]
 data.test$ranking <- as.numeric(as.character(data.test$ranking))
@@ -99,6 +98,10 @@ cbind(Cp = summary(data.reg)$cp,
 
 data_reg.summary$which[8,]
 
+
+
+
+
 ```
 
 
@@ -113,6 +116,9 @@ masters.lin_regFinal <- lm(total_score ~ driving_distance + sg_putt +
 data = data.train)
 
 summary(masters.lin_regFinal)
+
+library(arm)
+
 ```
 Using anova to test if the model without gir_not_fair is better than the model
 with it

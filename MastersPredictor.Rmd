@@ -223,8 +223,6 @@ we are using first, so we do not have to get as much data.
 
 
 
-
-
 All data from 2021 & 2022 pga seasons
 ```{r}
 
@@ -234,8 +232,24 @@ data <- read.csv("2022FinalMasters_pred_data.csv")
 predict_2022_masters <- subset(data, data$player_name %in% masters_list$player_name)
 View(predict_2022_masters)
 
- 
+predict_data <- subset(predict_2022_masters, select = c(year, player_name,
+                                                    driving_distance,
+                                                    sg_putt, ranking, rounds,
+                                                    gir, top_10, putts_round))
+# Adding players to list
+
+tiger <- c(2022, "Tiger Woods", 299.4, -0.634,	18,	23,	64.88,	2,	29.21) 
+bubba <- c(2022, "Bubba Watson", 291.3,	-0.309,	66,	12,	64.43,	0,	28.83)
+bryson <- c(2022, "Bryson DeChambeau", 323.7,	0.456,	14,	34,	67.15,	9,	28.64)
+rory <-  c(2022, "Rory Mcllroy", 320.1,	0.247,	9,	18,	64.51,	2,	28.28)
+Pieters	<- c(2022, "Thomas Pieters", 308.1,	-0.451,	34,	8,	52.78,	0,	29.13)
+
+
+predictFinal <- rbind(predict_data, tiger, bubba, bryson, rory, Pieters)
+
 data20212022 <- read.csv("masterspred20212022.csv")
+
+
 #View(data20212022)
 
 ```
