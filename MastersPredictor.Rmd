@@ -186,15 +186,15 @@ not in this list because they are playing in the masters but haven't played in
 the top 10 players from this dataset.
 
 Players missing from this list:
- - Rory Mcllory
- - Bryson DeChambeau
+ - Rory Mcllory *
+ - Bryson DeChambeau *
  - Harris English
- - Thomas Pieters
+ - Thomas Pieters *
  - Harold Varner
  - Takumi Kanaya
- - Min Woo Lee
+ - Min Woo Lee 
  - Lee Westwood
- - Bubba Watson
+ - Bubba Watson *
  - Robert MacIntyre
  - Kyoung-Hoon Lee
  - Guido Migliozzi
@@ -212,7 +212,7 @@ Players missing from this list:
  - James Piot
  - Mike Weir
  - Sandy Lyle
- - Tiger Woods
+ - Tiger Woods *
  
 For all the players who haven't played in 2022 we need to find data from the
 last year they played.
@@ -222,6 +222,15 @@ we should manually put it in for predictions. We should find which variables
 we are using first, so we do not have to get as much data.
 
 
+
+
+Manually Getting based on the quality of their past year and their participation in the 2022 Masters
+
+ - Rory Mcllory *
+ - Bryson DeChambeau *
+ - Thomas Pieters *
+ - Bubba Watson *
+ - Tiger Woods *
 
 
 

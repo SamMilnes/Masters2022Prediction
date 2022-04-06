@@ -52,6 +52,10 @@ newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1
 #Get rid of NA's
 newPGA2 <- na.omit(newPGA2)
 testData2021 <- newPGA2
+testData2021 <- testData2021[which(testData2021$year == 2021),]
+testData2021$masters_finish <- as.numeric(as.character(testData2021$masters_finish))
+testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
+
 # Drop player name column
 newPGA2 <- newPGA2[, -2]
 
@@ -68,6 +72,8 @@ newPGA2 <- newPGA2[, -2]
 # Getting all data before 2021 season
 data.train <- newPGA2[which(newPGA2$year < 2021),]
 data.train$ranking <- as.numeric(as.character(data.train$ranking))
+data.test$ranking <- as.numeric(as.character(data.test$ranking))
+newPGA2$ranking <- as.numeric(as.character(newPGA2$ranking))
 #data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
 #data.train <- subset(data.train, select = -c(masters_finish))
 data.train <- data.train[, -1]
@@ -77,6 +83,7 @@ data.train <- data.train[, -1]
 
 # Getting all data from the 2021 season.
 data.test <- newPGA2[which(newPGA2$year == 2021),]
+
 ```
 
 
@@ -105,11 +112,48 @@ data.train$masters_top_10 <- ifelse(data.train$masters_finish < 11, 1, 0)
 ```
 
 ```{r}
-masters.logisticReg <- glm(masters_top_10 ~ driving_distance + sg_putt +
-                ranking + rounds + gir + top_10 + putts_round,
-data = data.train, family = binomial)
+# masters.logisticReg <- glm(masters_top_10 ~ driving_distance + sg_putt + ranking + rounds + gir + top_10 + putts_round, 
+#                            data = data.train, family = binomial)
 
-masters.logisticReg
+masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + rounds + gir + putts_round, 
+                           data = data.train, family = binomial)
+
+# summary(masters.logisticReg)
+summary(masters.logisticReg2)
+
+cor(data.train)
+
+```
+
+```{r}
+# newPGA2 <- subset(newPGA2, select = -c(masters_top_10))
+
+
+myprobability2 <- predict(masters.logisticReg2, data.test, type = "response")
+
+myprobability2
+
+
+
+prediction.logistic2 <- rep(0, length(newlogisticprediction))
+
+# masters.logisticReg2[newlogisticprediction > 0.5] <- 1
+# table(newlogisticprediction, newPGA2$masters_top_10)
+
+
+
+# logisticPrediction <- predict(masters.logisticReg2, data.test, type = "response")
+
+prediction.logistic2[myprobability2 > 0.5] <- 1
+table(prediction.logistic2, data.test$masters_top_10)
+
+mean(prediction.logistic2 != data.test$masters_top_10)
+testData2021$top_10_prob <- myprobability2
+
+FinalTestDataSub <- subset(testData2021, select =  c(year, player_name, total_score,
+                                            masters_top_10, top_10_prob))
+
+
 
 ```
 
