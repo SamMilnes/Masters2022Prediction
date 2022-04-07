@@ -117,7 +117,6 @@ data = data.train)
 
 summary(masters.lin_regFinal)
 
-library(arm)
 
 ```
 Using anova to test if the model without gir_not_fair is better than the model
@@ -188,4 +187,35 @@ FinalTestDataSub <- subset(finalTestData, select =  c(year, player_name, total_s
 FinalTestDataSub[order(FinalTestDataSub$predictedFinalScore, decreasing = FALSE),]  
 
 ```
+
+
+```{r}
+predictionData <- read.csv("Masters2022FinalPredictionData.csv")
+predictionData$ranking<-gsub("T","",as.character(predictionData$ranking))
+
+predictionData$ranking <- as.numeric(as.character(predictionData$ranking))
+
+
+prediction2022 <- predict(masters.lin_regFinal, newdata = predictionData)
+prediction2022
+
+
+predictionData$PredictedTotal_Score <- prediction2022
+
+FinalPredict <- subset(predictionData, select =  c(year, player_name, PredictedTotal_Score))
+
+t69 <- rep(1:69)
+
+top10new <- FinalPredict[order(FinalPredict$PredictedTotal_Score, decreasing = FALSE),] 
+top10new$PredictFinish <- t69
+
+top10Final <- head(top10new, 10)
+t110 <- c(1,2,3,4,5,6,7,8,9,10)
+top10Final$rank <- t110
+top10Final <- top10Final[, -1]
+
+
+```
+
+
 
