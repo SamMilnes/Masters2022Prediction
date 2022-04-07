@@ -159,6 +159,30 @@ FinalTestDataSub[order(FinalTestDataSub$top_10_prob, decreasing = FALSE),]
 
 ```
 
+
+```{r}
+pgaFinal <- read.csv("Masters2022FinalPredictionData.csv")
+masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + rounds + gir + putts_round, 
+                           data = data.train, family = binomial)
+
+myprobabilityfinal <- predict(masters.logisticReg2, pgaFinal, type = "response")
+
+prediction.logistic2 <- rep(0, length(newlogisticprediction))
+
+prediction.logistic2[myprobability2 > 0.5] <- 1
+
+
+
+pgaFinal$top_10_prob <- myprobabilityfinal
+
+# pgaFinal[order(pgaFinal$top_10_prob, decreasing = FALSE),]
+
+# FinalTestDataSub2 <- subset(pgaFinal, select =  c(year, player_name, top_10_prob))
+
+# FinalTestDataSub2[order(FinalTestDataSub2$top_10_prob, decreasing = FALSE),]
+
+```
+
 ```{r}
 #View(testData2021)
 testData2021 <- testData2021[which(testData2021$year == 2021),]
