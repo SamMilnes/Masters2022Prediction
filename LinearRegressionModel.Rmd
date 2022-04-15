@@ -67,6 +67,7 @@ Splitting the data into training and testing data
 data.train <- newPGA2[which(newPGA2$year < 2021),]
 data.train$ranking <- as.numeric(as.character(data.train$ranking))
 #data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+svm.data_train1 <- data.train
 data.train <- subset(data.train, select = -c(masters_finish))
 data.train <- data.train[, -1]
 
@@ -216,6 +217,193 @@ top10Final <- top10Final[, -1]
 
 
 ```
+
+
+Creating Regression Decision Tree to Predict Total Score
+
+```{r}
+
+#data.train
+
+# Dropping year column from test data set
+#data.test
+# data.test <- data.test[, -1]
+# View(data.test)
+
+dc.data_train <- data.train
+dc.data_test <- data.test
+
+dc.data_test <- subset(dc.data_test, select = -c(year))
+
+
+library(tree) 
+
+set.seed(1234)
+
+# tree.pga = tree(total_score ~ driving_distance + sg_putt +
+#                 ranking + rounds + gir + top_10 + putts_round, data.train)
+tree.pga = tree(total_score ~., data.train)
+summary(tree.pga)
+
+
+plot(tree.pga)
+text(tree.pga, pretty = 0, cex=.75)
+
+```
+Getting MSE for first trial of tree
+```{r}
+predVal <- predict(tree.pga, newdata = data.test)
+actualVal <- data.test$total_score
+
+MSE <- mean((predVal - actualVal)^2)
+MSE
+```
+Using cross validation to find optimal level of tree complexity
+```{r}
+cv.tree_pga = cv.tree(tree.pga)
+plot(cv.tree_pga$size, cv.tree_pga$dev, type='b')
+```
+After using cross-validation, we can determine that the optimal level of tree 
+complexity for pruning is 3.
+
+
+Pruning the tree
+```{r}
+prune.tree_pga <- prune.tree(tree.pga, best = 4)
+plot(prune.tree_pga)
+text(prune.tree_pga, pretty = 0, cex=.75)
+summary(prune.tree_pga)
+```
+
+
+K-nearest-Neighbors:
+
+Scaling predictor variables:
+```{r}
+
+knn.data_train <- data.train
+knn.data_train_final <- subset(knn.data_train, select = c(driving_distance, sg_putt, ranking, rounds, gir, top_10, putts_round, total_score))
+
+knn.data_test <- data.test
+
+knn.data_test <- subset(knn.data_test, select = -c(year))
+knn.data_test_final <- subset(knn.data_test, select = c(driving_distance, sg_putt, ranking, rounds, gir, top_10, putts_round, total_score))
+
+knn.data_train_final[,1:7] <- scale(knn.data_train_final[,1:7])
+
+```
+
+Players who had this type of skill were clustered together, using clustering.
+
+
+
+SVM:
+
+Adding column
+1 if the golfer finished in the top 10 
+0 if outside the top 10
+```{r}
+
+
+svm.data_train <- svm.data_train1
+svm.data_test <- data.test
+
+svm.data_test <- subset(svm.data_test, select = -c(year))
+svm.data_train <- subset(svm.data_train, select = -c(year))
+
+svm.data_train$masters_finish <- as.numeric(as.character(svm.data_train$masters_finish))
+svm.data_train$masters_top_10 <- ifelse(svm.data_train$masters_finish < 11, 1, 0)
+
+svm.data_test$masters_finish <- as.numeric(as.character(svm.data_test$masters_finish))
+svm.data_test$masters_top_10 <- ifelse(svm.data_test$masters_finish < 11, 1, 0)
+
+
+# hist(svm.data_train$masters_top_10)
+
+# svm.data_test$masters_top_10 <- as.factor(svm.data_test$masters_top_10)
+# svm.data_train$masters_top_10 <- as.factor(svm.data_train$masters_top_10)
+
+
+
+
+# svm.data_test <- subset(svm.data_test, select = -c(masters_finish))
+
+# svm.data_test <- subset(svm.data_test, select = c(driving_distance, sg_putt, ranking, rounds, gir, top_10, putts_round, total_score))
+
+```
+Using Smote to work with unbalanced data
+
+```{r}
+#install.packages("smotefamily")
+library(smotefamily)
+
+smote <- SMOTE(svm.data_train[,-7], svm.data_train$masters_top_10)
+new <- smote$data
+View(new)
+
+hist(new$masters_top_10)
+new$masters_top_10 <- as.factor(new$masters_top_10)
+new$masters_top_10 <- as.factor(new$masters_top_10)
+
+```
+
+
+
+
+```{r}
+
+library(e1071)
+set.seed(1234)
+svm.pga <- tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = new,
+                kernel = "linear",
+                ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100)))
+#summary(svm.auto)
+bestmod = svm.pga$best.model
+summary(svm.pga)
+
+```
+
+
+
+
+
+
+```{r}
+set.seed(1234)
+svm.pga_poly <- tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = svm.data_train,
+                kernel = "polynomial",
+                ranges = list(cost = c(0.1,1,10,100), degree = c(2, 3, 4, 5)))
+#summary(svm.auto)
+bestmod_poly = svm.pga_poly$best.model
+summary(svm.pga_poly)
+
+
+
+
+```
+
+
+Testing svm model
+```{r}
+
+ypred <- predict(bestmod, svm.data_test)
+ypred
+#table(predict = ypred, truth = svm.data_test$masters_top_10)
+
+```
+
+
+
+
+
+
+
+
+
 
 
 
