@@ -360,12 +360,6 @@ FinalPredictSVM <- subset(predictionDataSVM, select =  c(year, player_name, top1
 
 predicted_top_10 <- subset(FinalPredictSVM, FinalPredictSVM$top10Finish == 1)
 predicted_top_10
-# top10Final <- head(top10new, 10)
-# t110 <- c(1,2,3,4,5,6,7,8,9,10)
-# top10Final$rank <- t110
-# top10Final <- top10Final[, -1]
-
-
 
 ```
 Found that linear works best for training data, but polynomial works better for

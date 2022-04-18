@@ -116,6 +116,7 @@ data.train <- newPGA2[which(newPGA2$year < 2021),]
 data.train$ranking <- as.numeric(as.character(data.train$ranking))
 #data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
 svm.data_train1 <- data.train
+logreg.data_train <- data.train
 data.train <- subset(data.train, select = -c(masters_finish))
 data.train <- data.train[, -1]
 
@@ -235,7 +236,333 @@ FinalTestDataSub[order(FinalTestDataSub$predictedFinalScore, decreasing = FALSE)
 
 ```
 After testing it on our test data, we see that were predicted 2 out of the top
-10 golfers for the 2021 masters, which is not very good
+10 golfers for the 2021 masters, which is not very good.
 
+
+
+Using our linear regression model to predict top 10 from this coming 2022
+masters
+
+```{r}
+predictionData <- read.csv("Masters2022FinalPredictionData.csv")
+predictionData$ranking<-gsub("T","",as.character(predictionData$ranking))
+
+predictionData$ranking <- as.numeric(as.character(predictionData$ranking))
+
+
+prediction2022 <- predict(masters.lin_regFinal, newdata = predictionData)
+#prediction2022
+
+
+predictionData$PredictedTotal_Score <- prediction2022
+
+FinalPredict <- subset(predictionData, select =  c(year, player_name, PredictedTotal_Score))
+
+t69 <- rep(1:69)
+
+top10new <- FinalPredict[order(FinalPredict$PredictedTotal_Score, decreasing = FALSE),] 
+top10new$PredictFinish <- t69
+
+top10Final <- head(top10new, 10)
+t110 <- c(1,2,3,4,5,6,7,8,9,10)
+top10Final$rank <- t110
+top10Final <- top10Final[, -1]
+top10Final
+```
+
+
+Using our linear regression model, we were able to predict 4 out of the top
+10 players, Justin Thomas, Collin Morikawa, Cameron Smith, and Rory Mcllroy.
+
+
+
+Next we decided to create a logistic regression model to predict if a player
+would finish in the top 10 or not.
+
+
+Data Cleaning:
+```{r}
+#Adding column
+#1 if the golfer finished in the top 10 
+#0 if outside the top 10
+
+
+
+# newPGA2$masters_finish <- as.numeric(as.character(newPGA2$masters_finish))
+# newPGA2$masters_top_10 <- ifelse(newPGA2$masters_finish < 11, 1, 0)
+logreg.data_train$masters_finish <- as.numeric(as.character(logreg.data_train$masters_finish))
+logreg.data_train$masters_top_10 <- ifelse(logreg.data_train$masters_finish < 11, 1, 0)
+```
+
+
+```{r}
+# making a logistic regression model using driving distance, strokes gained
+# putting, rounds, greens in #regulation and putts per round. 
+masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + 
+                              rounds + gir + putts_round, 
+                           data = logreg.data_train, family = binomial)
+summary(masters.logisticReg2)
+#cor(data.train)
+```
+
+Testing the logistic regression model on the 2021 masters.
+A golfer will have a probability of finishing top 10 that year.
+They will have a 1 if they ended up finishing top 10 and a 0 if not
+
+```{r}
+myprobability2 <- predict(masters.logisticReg2, data.test, type = "response")
+myprobability2
+prediction.logistic2 <- rep(0, length(masters.logisticReg2))
+prediction.logistic2[myprobability2 > 0.5] <- 1
+mean(prediction.logistic2 != data.test$masters_top_10)
+testData2021$top_10_prob <- myprobability2
+#making easy to read results
+FinalTestDataSub <- subset(testData2021, select =  c(year, player_name, total_score,
+                                            masters_top_10, top_10_prob))
+#view in increasing order of probability of top 10
+top10Finishers
+FinalTestDataSub[order(FinalTestDataSub$top_10_prob, decreasing = FALSE),]
+```
+After testing our data on the 2021 masters, we were able to predict three of the
+golfers who made the top 10, Justin Rose, Tony Finau, and Jon Rahm.
+
+
+
+
+
+#2022 PREDICTIONS
+```{r}
+#reading the data final data set with the golfers that were not included prior
+pgaFinal <- read.csv("Masters2022FinalPredictionData.csv")
+#making a prediction using the regression model and pgaFinal data set
+myprobabilityfinal <- predict(masters.logisticReg2, pgaFinal, type = "response")
+prediction.logistic2 <- rep(0, length(masters.logisticReg2))
+prediction.logistic2[myprobability2 > 0.5] <- 1
+#adding the probability of finishing top 10 in 2022 to the pgaFinal data set
+pgaFinal$top_10_prob <- myprobabilityfinal
+pgaFinal
+#View(pgaFinal)
+```
+
+Interpretation
+
+The prediction of sports results can be very challenging due to factors that cannot be given numerical values. Any athlete can perform out of character on any given day for the good or the better resulting in a very challenging prediction. However, we have access to so many statistics today that can make this challenge a bit easier. When running a logistic regression model on the 2021 masters, we successfully predicted 3 of the top 10 golfers based on our top 10 percentages. At first glance this might seem fairly inaccurate. However, when considering that the Masters includes field of 90 or so golfers that may or may not play up to their standards, this prediction may seem appropriate. When using the logistic regression model to try to predict the 2022 Masters, we ended up again predicting 4 of the 10 correctly.
+
+The predictors that we decided to use for logistic regression included driving distance, strokes gained putting, rounds, greens in regulation and putts per round. These predictors were decided based on a few factors including, p-values, the cor function, and just using our basic golf knowledge of what is important in golf. The model used stats that apply to the year that the tournament was played in. This was true for all except a couple of golfers that played in the Masters this year but had a very minimal number of rounds played leading up to the tournament due to injury. In this case we used their stats from 2021. 
+
+One golfer that was accurately predicted by our model was Justin Thomas. Thomas has been a very effective golfer of late and was given the highest percentage to finish in the top 10 in this years master. Thomas did end up finishing in 8th place. A golfer that did not play up to his standards was Patrick Cantlay. At second highest in our model, Cantlay was given a 65 percent chance to finish in the top 10 of this years Masters. He had already had 4 top 10 finishes in major events of this golf year and had very promising features such as a low putts per round and a high amount of strokes gained putting. Cantlay ended up finishing 39th in this years Masters.
+
+
+After playing around with some other predictors, I believe that we chose some of the most effective ones.
+Above, the p-values for each predictor are shown in the 2022 prediction. Driving distance, rounds, greens in regulation and putts per round were all very strong predictors. Strokes gained putting was perhaps out of the confidence interval but a statistic that we believe to be very important.
+
+
+
+
+
+Creating the support vector machine model to predict players that will finish
+top 10.
+
+
+```{r}
+
+
+svm.data_train <- svm.data_train1
+svm.data_test <- data.test
+
+svm.data_test <- subset(svm.data_test, select = -c(year))
+svm.data_train <- subset(svm.data_train, select = -c(year))
+
+# 1 if the golfer finished in the top 10, 0 if outside the top 10
+svm.data_train$masters_finish <- as.numeric(as.character(svm.data_train$masters_finish))
+svm.data_train$masters_top_10 <- ifelse(svm.data_train$masters_finish < 11, 1, 0)
+
+svm.data_test$masters_finish <- as.numeric(as.character(svm.data_test$masters_finish))
+svm.data_test$masters_top_10 <- ifelse(svm.data_test$masters_finish < 11, 1, 0)
+svm.data_test <- na.omit(svm.data_test)
+
+```
+
+After creating testing and training data for our support vector machine,
+we realized that our data is really unbalanced.
+
+```{r}
+hist(svm.data_train$masters_top_10, main = "Histogram of 10 top finish")
+```
+This data is super unbalanced, and this would not allow us to properly classify 
+data using svm. Because of this, we decided to use a technique called 
+SMOTE to help us balance our data. SMOTE stands for Synthetic Minority
+Oversampling Technique, and what this will do is oversample the top 10 column so
+that our data will be balanced, and to make sure the prediction will not always
+be predicted as the majority class, which in our case is 0 because only 10
+people out of around 60-100, will make top 10 each year.
+
+Using Smote to work with unbalanced data
+
+```{r}
+#install.packages("smotefamily")
+library(smotefamily)
+
+smote <- SMOTE(svm.data_train[,-7], svm.data_train$masters_top_10)
+new <- smote$data
+#View(new)
+
+hist(new$masters_top_10)
+new$masters_top_10 <- as.factor(new$masters_top_10)
+new$masters_top_10 <- as.factor(new$masters_top_10)
+
+```
+
+Now we are going to be tuning our svm model, using linear, polynomial, and
+radial kernels. We are doing this because sometimes the data can not always
+be split into two separate predictions, so we use polynomial and radial to make
+our model non-linear.
+
+```{r}
+library(e1071)
+set.seed(1234)
+svm.pga <- tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = new,
+                kernel = "linear",
+                ranges = list(cost = c(0.01, 0.1, 1, 5, 10, 100)))
+#summary(svm.auto)
+bestmod = svm.pga$best.model
+summary(svm.pga)
+
+```
+
+
+Polynomial SVM kernel
+```{r}
+set.seed(1234)
+svm.pga_poly <- tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = new,
+                kernel = "polynomial",
+                ranges = list(cost = c(0.1,1,10,100), degree = c(2, 3, 4, 5)))
+#summary(svm.auto)
+bestmod_poly = svm.pga_poly$best.model
+summary(svm.pga_poly)
+
+```
+
+Radial SVM kernel
+```{r}
+set.seed(1234)
+svm.pga_radial = tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = new,
+                kernel = "radial",
+                ranges = list(cost = c(0.1,1,10,100), gamma = c(0.5,1,2,3)))
+bestmod_radial = svm.pga_radial$best.model
+summary(svm.pga_radial)
+
+```
+
+Testing the models:
+
+SVM linear model
+```{r}
+
+ypred <- predict(bestmod, svm.data_test)
+#ypred
+table(predict = ypred, truth = svm.data_test$masters_top_10)
+
+```
+
+34 / 49 classified correctly
+15 / 49 classified incorrectly -> 30.6% of observations were misclassified by 
+this SVM model.
+
+
+
+SVM polynomial model
+```{r}
+
+ypredpoly <- predict(bestmod_poly, svm.data_test)
+#ypredpoly
+table(predict = ypredpoly, truth = svm.data_test$masters_top_10)
+
+```
+27 / 49 classified correctly
+22 / 49 classified incorrectly -> 44.8% of observations were misclassified by 
+this SVM model.
+
+
+SVM radial model
+```{r}
+ypredradial <- predict(bestmod_radial, svm.data_test)
+#ypredradial
+table(predict = ypredradial, truth = svm.data_test$masters_top_10)
+
+```
+37 / 49 classified correctly
+12 / 49 classified incorrectly -> 24.4% of observations were misclassified by 
+this SVM model.
+
+
+After looking at the test error rates for each model, at first glance it might
+make since to choose the radial svm model because it has the lowest test error 
+rate. But we did some more investigating.
+```{r}
+ypredradial
+```
+We see that only three of the players got classified in the top 10, which does
+not make any sense, so we can conclude that this is not the best model, as most
+of the classifications in this case go to the majority classifier of 0.
+
+
+
+
+Testing linear SVM Model on 2022 Data
+```{r}
+
+predictionDataSVM <- read.csv("Masters2022FinalPredictionData.csv")
+predictionDataSVM$ranking<-gsub("T","",as.character(predictionDataSVM$ranking))
+
+predictionDataSVM$ranking <- as.numeric(as.character(predictionDataSVM$ranking))
+
+pred2022SVM <- predict(bestmod, predictionDataSVM)
+#pred2022SVM
+
+predictionDataSVM$top10Finish <- pred2022SVM
+FinalPredictSVM <- subset(predictionDataSVM, select =  c(year, player_name, top10Finish))
+
+predicted_top_10 <- subset(FinalPredictSVM, FinalPredictSVM$top10Finish == 1)
+predicted_top_10
+
+```
+After testing our model on new data from 2022, we see that the linear svm model
+does not actually do a good job on classifying, as 50 players got put in the
+top 10, which is extremely high as we only had data for 69 players who were 
+playing in the 2022 masters in total.
+
+
+
+
+Testing polynomial SVM Model on 2022 Data
+```{r}
+
+predictionDataSVM <- read.csv("Masters2022FinalPredictionData.csv")
+predictionDataSVM$ranking<-gsub("T","",as.character(predictionDataSVM$ranking))
+
+predictionDataSVM$ranking <- as.numeric(as.character(predictionDataSVM$ranking))
+
+pred2022SVM <- predict(bestmod_poly, predictionDataSVM)
+#pred2022SVM
+
+predictionDataSVM$top10Finish <- pred2022SVM
+FinalPredictSVM <- subset(predictionDataSVM, select =  c(year, player_name, top10Finish))
+
+predicted_top_10 <- subset(FinalPredictSVM, FinalPredictSVM$top10Finish == 1)
+predicted_top_10
+
+```
+When we try our new data on the polynomial model, we see that it does a more
+accurate job of classifying top 10, as only 26 players were chosen by our
+model. So we can conclude that the linear svm model worked best for test 2021 
+data, but when we fed it new data to predict this coming masters, it did not do
+well, and we saw the polynomial model preform better on unseen 2022 data.
 
 
