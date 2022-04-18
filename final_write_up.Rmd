@@ -142,9 +142,9 @@ data.reg <- regsubsets(total_score ~., data = data.train)
 data_reg.summary <- summary(data.reg)
 #data_reg.summary
 which.max(data_reg.summary$adjr2)
-#plot(data_reg.summary$adjr2)
+plot(data_reg.summary$adjr2)
 which.min(data_reg.summary$cp)
-#plot(data_reg.summary$cp)
+plot(data_reg.summary$cp)
 cbind(Cp = summary(data.reg)$cp,
   Adj_r2 = summary(data.reg)$adjr2)
 
@@ -343,6 +343,8 @@ prediction.logistic2[myprobability2 > 0.5] <- 1
 #adding the probability of finishing top 10 in 2022 to the pgaFinal data set
 pgaFinal$top_10_prob <- myprobabilityfinal
 pgaFinal
+
+top10Log <- subset(pgaFinal, select = c(year, player_name, top_10_prob))
 #View(pgaFinal)
 ```
 

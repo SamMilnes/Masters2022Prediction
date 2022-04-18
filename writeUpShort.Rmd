@@ -2,11 +2,175 @@
 title: "WriteUp Short"
 author: "Sam Milnes"
 date: "4/18/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("mp.jpg")
+```
 
+While researching ideas for our final project, the one thing that kept coming
+up was sports. Kevin and I both play ice hockey here at Wentworth, as well as 
+both play golf for fun in our free time. While looking into making models for 
+a sport, we remembered that the 2022 Masters Golf Tournament was right around
+the corner. We decided to take a deeper dive into the statistics of golf to try
+to come up with three different models that would help us predict the winners
+of the historic tournament.
+
+
+The three types of machine learning models we decided to use were linear
+regression, logistic regression, and support vector machines. 
+
+
+Before we could jump right into creating models, we had to deal with getting the
+data itself, which was one of the more difficult things in this project. After
+doing some research, we realized how difficult it was to get data on each 
+professional golfer, as there is no where to just download csv files. After some
+more digging, we came across a web scraper on github, which scrapes the PGA Tour
+website for each players statistics going back until 2005. Even though this 
+scraper was old and outdated, we were able to update it by modifying some code,
+and eventually we were able to get all the data we needed into one csv file.
+
+
+Now that we had the data we needed to make our models, we decided to first
+start with a linear regression model. Our linear regression model was 
+straight forward and we chose the right predictors by using a technique called
+regsubsets. This technique finds the optimal amount of predictors by calculating
+Adjr^2 value, and finding when it about levels out, aka no great increase,
+We were able to find the best 8 predictors
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("regsubs.png")
+```
+
+The best predictors were driving distance, sg_putt, ranking, rounds, gir, top_10,
+and gir_not_fair.
+
+We did K-fold cross validation to find our error rate, which was 6.13353.
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("linCV.png")
+```
+
+
+We then applied our model to this years Masters tournament.
+
+Predicted:
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("linPred.png")
+```
+
+Actual:
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("masters22results.png")
+```
+
+We were able to predict four out of the top ten for this years Masters. The 
+players we accurately predicted were Justin Thomas, Rory Mcllroy, Cameron Smith,
+and Collin Morikawa. This was better than we expected because of how high our
+error rate was when doing cross validation.
+
+
+Next we decided to create a logistic regression model to predict if a player
+would finish in the top 10 or not. After doing some more analysis, we 
+discovered that we should use driving_distance, sg_putt, rounds, gir, and 
+putts_round. We eliminated some of the predictors that were in the linear 
+model because they gave high p-values in our logistic model, and due to some
+correlation.
+
+
+Predicted:
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("logPred.png")
+```
+
+When using the logistic regression model to try to predict the 2022 Masters,
+we ended up again predicting four of the ten correctly. The four were Justin
+Thomas, Rory Mcllroy, Cameron Smith, and Collin Morikawa. These were the same
+four our linear regression model predicted.
+
+
+With both of the models giving us the same predicted players, the difference
+between them were the players its predicted that did not make top 10. This 
+difference in players was very interesting.
+
+
+Lastly, we decided to create a support vector machine model to predict if a 
+player would finish in the top ten or not. After creating testing and training 
+data for our support vector machine, we realized that our data for our response
+variable, top_10, was really unbalanced.
+
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("unbal.png")
+```
+
+
+This data is super unbalanced, and this would not allow us to properly classify 
+data using SVM Because of this, we decided to use a technique called SMOTE to 
+help us balance our data. SMOTE stands for Synthetic Minority
+Oversampling Technique, and what this will do is oversample the top 10 column so
+that our data will be balanced, and to make sure the prediction will not always
+be predicted as the majority class, which in our case is 0 because only 10
+people out of around 60-100, will make top 10 each year.
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("bal.png")
+```
+
+
+Now our top 10 column is balanced, so we can use SVM.
+
+
+Now we are going to be using cross validation by tuning our svm model, using 
+linear, polynomial, and radial kernels. We are doing this because sometimes the 
+data can not always be split into two separate predictions, so we use polynomial
+and radial to make our model non-linear.
+
+
+We came to the conclusion that our polynomial support vector machine model
+worked the best on our unseen 2022 test data. We did cross validation for our
+polynomial model.
+
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("svm.png")
+```
+
+Our best cross validation results gave us an error rate of around 30%, when our 
+cost was 100, and our polynomial was to the 4th degree.
+
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("svmPred.png")
+```
+
+After we ran our svm polynomial model, we run into some issues where it predicts
+that 24 players will be in the top 10. This means that a decent amount of players
+were misclassified. From this model, we were only able to predict three out
+of the top ten, which were Will Zakatoris, Rory Mcllroy, and Shane Lowry.
+
+
+After creating three different models and doing analysis on them, we can conclude
+that the both the linear regression and logistic regression models preformed
+the best compared to the support vector machine. With both linear and logistic
+regression models, we were able to correctly predict four out of the top ten
+players for this coming years Masters. We believe that the support vector
+machine model did not preform as well because of how unbalanced the data was.
+When looking at the Masters tournament, there is between 70-100 participants
+every single year, with only 10 people making the top ten. This creates a large
+skew and makes our predictor very unbalanced. We used a technique called SMOTE,
+but at the end of the day its creating synthetic data, which might not be as 
+accurate as we thought it would be.
+
+The prediction of sports results can be very challenging due to factors that
+cannot be given numerical values. Any athlete can perform out of character on any
+given day for the good or the better resulting in a very challenging prediction.
+However, we have access to so many statistics today that can make this challenge
+a bit easier.
