@@ -198,7 +198,7 @@ predictionData$ranking <- as.numeric(as.character(predictionData$ranking))
 
 
 prediction2022 <- predict(masters.lin_regFinal, newdata = predictionData)
-prediction2022
+#prediction2022
 
 
 predictionData$PredictedTotal_Score <- prediction2022
@@ -217,83 +217,6 @@ top10Final <- top10Final[, -1]
 
 
 ```
-
-
-Creating Regression Decision Tree to Predict Total Score
-
-```{r}
-
-#data.train
-
-# Dropping year column from test data set
-#data.test
-# data.test <- data.test[, -1]
-# View(data.test)
-
-dc.data_train <- data.train
-dc.data_test <- data.test
-
-dc.data_test <- subset(dc.data_test, select = -c(year))
-
-
-library(tree) 
-
-set.seed(1234)
-
-# tree.pga = tree(total_score ~ driving_distance + sg_putt +
-#                 ranking + rounds + gir + top_10 + putts_round, data.train)
-tree.pga = tree(total_score ~., data.train)
-summary(tree.pga)
-
-
-plot(tree.pga)
-text(tree.pga, pretty = 0, cex=.75)
-
-```
-Getting MSE for first trial of tree
-```{r}
-predVal <- predict(tree.pga, newdata = data.test)
-actualVal <- data.test$total_score
-
-MSE <- mean((predVal - actualVal)^2)
-MSE
-```
-Using cross validation to find optimal level of tree complexity
-```{r}
-cv.tree_pga = cv.tree(tree.pga)
-plot(cv.tree_pga$size, cv.tree_pga$dev, type='b')
-```
-After using cross-validation, we can determine that the optimal level of tree 
-complexity for pruning is 3.
-
-
-Pruning the tree
-```{r}
-prune.tree_pga <- prune.tree(tree.pga, best = 4)
-plot(prune.tree_pga)
-text(prune.tree_pga, pretty = 0, cex=.75)
-summary(prune.tree_pga)
-```
-
-
-K-nearest-Neighbors:
-
-Scaling predictor variables:
-```{r}
-
-knn.data_train <- data.train
-knn.data_train_final <- subset(knn.data_train, select = c(driving_distance, sg_putt, ranking, rounds, gir, top_10, putts_round, total_score))
-
-knn.data_test <- data.test
-
-knn.data_test <- subset(knn.data_test, select = -c(year))
-knn.data_test_final <- subset(knn.data_test, select = c(driving_distance, sg_putt, ranking, rounds, gir, top_10, putts_round, total_score))
-
-knn.data_train_final[,1:7] <- scale(knn.data_train_final[,1:7])
-
-```
-
-Players who had this type of skill were clustered together, using clustering.
 
 
 
@@ -316,15 +239,9 @@ svm.data_train$masters_top_10 <- ifelse(svm.data_train$masters_finish < 11, 1, 0
 
 svm.data_test$masters_finish <- as.numeric(as.character(svm.data_test$masters_finish))
 svm.data_test$masters_top_10 <- ifelse(svm.data_test$masters_finish < 11, 1, 0)
-
+svm.data_test <- na.omit(svm.data_test)
 
 # hist(svm.data_train$masters_top_10)
-
-# svm.data_test$masters_top_10 <- as.factor(svm.data_test$masters_top_10)
-# svm.data_train$masters_top_10 <- as.factor(svm.data_train$masters_top_10)
-
-
-
 
 # svm.data_test <- subset(svm.data_test, select = -c(masters_finish))
 
@@ -339,7 +256,7 @@ library(smotefamily)
 
 smote <- SMOTE(svm.data_train[,-7], svm.data_train$masters_top_10)
 new <- smote$data
-View(new)
+#View(new)
 
 hist(new$masters_top_10)
 new$masters_top_10 <- as.factor(new$masters_top_10)
@@ -366,35 +283,98 @@ summary(svm.pga)
 ```
 
 
-
-
-
-
+Polynomial SVM kernel
 ```{r}
 set.seed(1234)
 svm.pga_poly <- tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
                   rounds + gir + top_10 + putts_round,
-                data = svm.data_train,
+                data = new,
                 kernel = "polynomial",
                 ranges = list(cost = c(0.1,1,10,100), degree = c(2, 3, 4, 5)))
 #summary(svm.auto)
 bestmod_poly = svm.pga_poly$best.model
 summary(svm.pga_poly)
 
+```
 
-
+Radial SVM kernel
+```{r}
+set.seed(1234)
+svm.pga_radial = tune(svm, masters_top_10 ~ driving_distance + sg_putt + ranking +
+                  rounds + gir + top_10 + putts_round,
+                data = new,
+                kernel = "radial",
+                ranges = list(cost = c(0.1,1,10,100), gamma = c(0.5,1,2,3)))
+bestmod_radial = svm.pga_radial$best.model
+summary(svm.pga_radial)
 
 ```
 
 
-Testing svm model
+
+
+
+
+Testing SVM linear model
 ```{r}
 
 ypred <- predict(bestmod, svm.data_test)
-ypred
-#table(predict = ypred, truth = svm.data_test$masters_top_10)
+#ypred
+table(predict = ypred, truth = svm.data_test$masters_top_10)
 
 ```
+
+34 / 49 classified correctly
+15 / 49 classified incorrectly -> 30.6% of observations were misclassified by 
+this SVM model.
+
+
+
+Testing SVM polynomial model
+```{r}
+
+ypredpoly <- predict(bestmod_poly, svm.data_test)
+#ypredpoly
+table(predict = ypredpoly, truth = svm.data_test$masters_top_10)
+
+```
+
+
+Testing SVM radial model
+```{r}
+ypredradial <- predict(bestmod_radial, svm.data_test)
+#ypredradial
+table(predict = ypredradial, truth = svm.data_test$masters_top_10)
+```
+
+Testing linear SVM Model on 2022 Data
+```{r}
+
+predictionDataSVM <- read.csv("Masters2022FinalPredictionData.csv")
+predictionDataSVM$ranking<-gsub("T","",as.character(predictionDataSVM$ranking))
+
+predictionDataSVM$ranking <- as.numeric(as.character(predictionDataSVM$ranking))
+
+pred2022SVM <- predict(bestmod_poly, predictionDataSVM)
+#pred2022SVM
+
+predictionDataSVM$top10Finish <- pred2022SVM
+FinalPredictSVM <- subset(predictionDataSVM, select =  c(year, player_name, top10Finish))
+
+predicted_top_10 <- subset(FinalPredictSVM, FinalPredictSVM$top10Finish == 1)
+predicted_top_10
+# top10Final <- head(top10new, 10)
+# t110 <- c(1,2,3,4,5,6,7,8,9,10)
+# top10Final$rank <- t110
+# top10Final <- top10Final[, -1]
+
+
+
+```
+Found that linear works best for training data, but polynomial works better for
+new test data. Even though polynomial worked the best, it was only able
+to narrow it down to 26 players, who it predicted would make top 10.
+
 
 
 
