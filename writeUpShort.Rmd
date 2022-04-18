@@ -1,0 +1,12 @@
+---
+title: "WriteUp Short"
+author: "Sam Milnes"
+date: "4/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+

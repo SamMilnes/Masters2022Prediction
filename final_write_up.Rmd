@@ -275,6 +275,8 @@ Using our linear regression model, we were able to predict 4 out of the top
 10 players, Justin Thomas, Collin Morikawa, Cameron Smith, and Rory Mcllroy.
 
 
+-------------------------------------------------------------------------------
+
 
 Next we decided to create a logistic regression model to predict if a player
 would finish in the top 10 or not.
@@ -357,7 +359,7 @@ After playing around with some other predictors, I believe that we chose some of
 Above, the p-values for each predictor are shown in the 2022 prediction. Driving distance, rounds, greens in regulation and putts per round were all very strong predictors. Strokes gained putting was perhaps out of the confidence interval but a statistic that we believe to be very important.
 
 
-
+-------------------------------------------------------------------------------
 
 
 Creating the support vector machine model to predict players that will finish
@@ -390,8 +392,8 @@ we realized that our data is really unbalanced.
 hist(svm.data_train$masters_top_10, main = "Histogram of 10 top finish")
 ```
 This data is super unbalanced, and this would not allow us to properly classify 
-data using svm. Because of this, we decided to use a technique called 
-SMOTE to help us balance our data. SMOTE stands for Synthetic Minority
+data using SVM Because of this, we decided to use a technique called SMOTE to 
+help us balance our data. SMOTE stands for Synthetic Minority
 Oversampling Technique, and what this will do is oversample the top 10 column so
 that our data will be balanced, and to make sure the prediction will not always
 be predicted as the majority class, which in our case is 0 because only 10
@@ -407,17 +409,23 @@ smote <- SMOTE(svm.data_train[,-7], svm.data_train$masters_top_10)
 new <- smote$data
 #View(new)
 
-hist(new$masters_top_10)
+hist(new$masters_top_10,  main = "Histogram of 10 top finish")
 new$masters_top_10 <- as.factor(new$masters_top_10)
 new$masters_top_10 <- as.factor(new$masters_top_10)
 
 ```
 
-Now we are going to be tuning our svm model, using linear, polynomial, and
-radial kernels. We are doing this because sometimes the data can not always
-be split into two separate predictions, so we use polynomial and radial to make
-our model non-linear.
 
+Now our top 10 column is balanced, so we can use SVM.
+
+
+Now we are going to be using cross validation by tuning our svm model, using 
+linear, polynomial, and radial kernels. We are doing this because sometimes the 
+data can not always be split into two separate predictions, so we use polynomial
+and radial to make our model non-linear.
+
+
+Linear SVM kernel
 ```{r}
 library(e1071)
 set.seed(1234)
@@ -536,7 +544,9 @@ predicted_top_10
 After testing our model on new data from 2022, we see that the linear svm model
 does not actually do a good job on classifying, as 50 players got put in the
 top 10, which is extremely high as we only had data for 69 players who were 
-playing in the 2022 masters in total.
+playing in the 2022 masters in total. But even though we have a large
+confidence interval of players, this svm model predicted every single player
+in the top 10 besides Corey Conners and Charl Schwartzel.
 
 
 
@@ -561,8 +571,41 @@ predicted_top_10
 ```
 When we try our new data on the polynomial model, we see that it does a more
 accurate job of classifying top 10, as only 26 players were chosen by our
-model. So we can conclude that the linear svm model worked best for test 2021 
+model. From this polynomial svm with 26 players, it predicted 3 of the top 10
+players: Rory Mcllroy, Will Zalatoris, and Shane Lowry.
+
+
+
+
+So we can conclude that the linear svm model worked best for test 2021 
 data, but when we fed it new data to predict this coming masters, it did not do
-well, and we saw the polynomial model preform better on unseen 2022 data.
+well. When we passed in new 2022 data, we saw the polynomial model preform 
+better on the unseen data.
+
+
+
+-------------------------------------------------------------------------------
+
+Final Conclusions:
+
+
+After creating three different models and doing analysis on them, we can conclude
+that the both the linear regression and logistic regression models preformed
+the best compared to the support vector machine. With both linear and logistic
+regression models, we were able to correctly predict four out of the top ten
+players for this coming years Masters. We believe that the support vector
+machine model did not preform as well because of how unbalanced the data was.
+When looking at the Masters tournament, there is between 70-100 participants
+every single year, with only 10 people making the top ten. This creates a large
+skew and makes our predictor very unbalanced. We used a technique called SMOTE,
+but at the end of the day its creating synthetic data, which might not be as 
+accurate as we thought it would be. Overall, we can conclude that it is not
+easy to predict sporting events. We consider our model to be decent when we only
+were able to precinct 4 players in the top ten. There is lots of noise and events
+that can alter the outcome of sporting events, which makes it extremely difficult
+to make accurate models.
+
+
+
 
 
