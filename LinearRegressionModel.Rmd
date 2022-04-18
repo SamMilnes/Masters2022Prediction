@@ -41,8 +41,6 @@ pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
 pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
 
 
-# Fill in NA's for score_average column to median
-#pga$score_average[is.na(pga$score_average)] <- median(pga$score_average, na.rm = T)
 # Get rid of all rows that have "CU" for masters finish column. This indicates
 # That the player did not make the cut, if kept in, this would skew the total score column
 newPGA <- subset(pga, (pga$masters_finish != "CU"))
@@ -76,7 +74,6 @@ data.train <- data.train[, -1]
 data.test <- newPGA2[which(newPGA2$year == 2021),]
 data.test$ranking <- as.numeric(as.character(data.test$ranking))
 
-
 ```
 
 
@@ -106,7 +103,7 @@ data_reg.summary$which[8,]
 ```
 
 
-Creating the linear regression model
+Creating the linear regression model to predict total score
 ```{r}
 masters.lin_reg <- lm(total_score ~ driving_distance + sg_putt +
                 ranking + rounds + gir + top_10 + putts_round + gir_not_fair, data = data.train)
@@ -137,7 +134,7 @@ hypothesis.
 
 
 
-Preforming cross validation with the caret library.
+Preforming k-fold cross validation with the caret library.
 ```{r}
 #install.packages("caret")
 set.seed(8392)
@@ -149,9 +146,9 @@ model.lm <- train(total_score ~ driving_distance + sg_putt +
       method = "lm", trControl = ctrl)
 print(model.lm)
 model.lm$resample
-
-
 ```
+We decided to use 10 folds in our cross validation. We ended up geting a root
+mean squared error of 6.13353
 
 
 

@@ -1,12 +1,241 @@
 ---
 title: "Write Up"
-author: "Sam Milnes"
+author: "Sam Milnes, Kevin Obbsuth"
 date: "4/18/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+```{r echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("mp.jpg")
+```
+
+While researching ideas for our final project, the one thing that kept coming
+up was sports. Kevin and I both play ice hockey here at Wentworth, as well as 
+both play golf for fun in our free time. While looking into making models for 
+a sport, we remembered that the 2022 Masters Golf Tournament was right around
+the corner. We decided to take a deeper dive into the statistics of golf to try
+to come up with three different models that would help us predict the winners
+of the historic tournament.
+
+
+The three types of machine learning models we decided to use were linear
+regression, logistic regression, and support vector machines. 
+
+
+Before we could jump right into creating models, we had to deal with getting the
+data itself, which was one of the more difficult things in this project. After
+doing some research, we realized how difficult it was to get data on each 
+professional golfer, as there is no where to just download csv files. After some
+more digging, we came across a web scraper on github, which scrapes the PGA Tour
+website for each players statistics going back until 2005. Even though this 
+scraper was old and outdated, we were able to update it by modifying some code,
+and eventually we were able to get all the data we needed into one csv file.
+
+The link to the scraper: https://github.com/jdubbert/Scrape-golf-data-from-web
+
+
+Here we will provide the definitions for the different columns we used as
+predictors and response variables:
+
+Top10 -> How many top 10 finishes did the player have for that given year
+
+Rounds -> How many rounds the player played that given year
+
+Ranking -> The players overall professional golf ranking
+
+Driving Distance -> The average number of yards per measured drive
+
+Gir -> (Greens in regulation) The percent of time a player was able to hit the green in regulation (greens hit in regulation/holes played)
+
+putts_round ->  The average number of total putts per round
+
+sg_putt -> The number of putts a player takes from a specific distance is measured against a statistical baseline to determine the player's strokes gained or lost on a hole.
+
+masters_finish -> the place the player finished in at that years masters. CUT means player didn't make cut.
+
+total_score -> The players total score from that year at the masters
+
+
+
+
+Now that we had the data we needed to make our models, we decided to first
+start with a linear regression model.
+
+
+
+Data Cleaning:
+```{r}
+
+pga <- read.csv("C:\\Users\\milness\\Desktop\\Machine Learning\\Final Project\\2022Masters_pred_data.csv")
+
+# Get rid of first column
+pga <- pga[, -1]
+# Get rid of x_attempts and hole proximity columns
+pga <- subset(pga, select = -c(hole_proximity, x_of_attempts))
+# Get rid of "T" in masters finish and ranking columns
+pga$masters_finish<-gsub("T","",as.character(pga$masters_finish))
+pga$ranking<-gsub("T","",as.character(pga$ranking))
+# Converting distance columns to inches
+pga_mat_fair <- stringr::str_extract_all(pga$prox_fair, "\\d+", simplify = TRUE)
+pga$prox_fair <- as.numeric(pga_mat_fair[, 1]) * 12 + as.numeric(pga_mat_fair[, 2])
+pga_mat_rough <- stringr::str_extract_all(pga$prox_rough, "\\d+", simplify = TRUE)
+pga$prox_rough <- as.numeric(pga_mat_rough[, 1]) * 12 + as.numeric(pga_mat_rough[, 2])
+pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
+pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
+
+
+# Get rid of all rows that have "CU" for masters finish column. This indicates
+# That the player did not make the cut, if kept in, this would skew the total score column
+newPGA <- subset(pga, (pga$masters_finish != "CU"))
+newPGA2 <- subset(newPGA, newPGA$masters_finish != "WD")
+# Change the value in the masters finish column to 1 if "Win"
+newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1
+#Get rid of NA's
+newPGA2 <- na.omit(newPGA2)
+testData2021 <- newPGA2
+# Drop player name column
+newPGA2 <- newPGA2[, -2]
+# Cleaned Data-frame to use for testing
+#View(newPGA2)
+
+```
+
+
+Splitting the data into training and testing data
+```{r}
+# Getting all data before 2021 season
+data.train <- newPGA2[which(newPGA2$year < 2021),]
+data.train$ranking <- as.numeric(as.character(data.train$ranking))
+#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
+svm.data_train1 <- data.train
+data.train <- subset(data.train, select = -c(masters_finish))
+data.train <- data.train[, -1]
+
+
+# Getting all data from the 2021 season.
+data.test <- newPGA2[which(newPGA2$year == 2021),]
+data.test$ranking <- as.numeric(as.character(data.test$ranking))
+
+```
+
+We decided to split the data into training data, which was all data from 2005
+to 2020, and test data which was data from the 2021 season.
+
+
+
+
+Preforming regsubsets on the data to find the best predictors. Here we can see
+that the optimal number of predictors is 8 and they are listed below.
+
+```{r}
+library(leaps)
+data.reg <- regsubsets(total_score ~., data = data.train)
+data_reg.summary <- summary(data.reg)
+#data_reg.summary
+which.max(data_reg.summary$adjr2)
+#plot(data_reg.summary$adjr2)
+which.min(data_reg.summary$cp)
+#plot(data_reg.summary$cp)
+cbind(Cp = summary(data.reg)$cp,
+  Adj_r2 = summary(data.reg)$adjr2)
+
+
+data_reg.summary$which[8,]
+```
+The best predictors are: driving distance, sg_putt, ranking, rounds, gir, top_10,
+gir_not_fair.
+
+
+Creating the linear regression model to predict total score.
+```{r}
+masters.lin_reg <- lm(total_score ~ driving_distance + sg_putt +
+                ranking + rounds + gir + top_10 + putts_round + gir_not_fair, data = data.train)
+# summary(masters.lin_reg)
+# Drop gir_not_fair due to high p-value
+masters.lin_regFinal <- lm(total_score ~ driving_distance + sg_putt +
+                ranking + rounds + gir + top_10 + putts_round,
+data = data.train)
+
+summary(masters.lin_regFinal)
+```
+
+
+Using anova to test if the model without gir_not_fair is better than the model
+with it
+H0: masters.lin_reg = masters.lin_regFinal
+Ha: masters.lin_reg != masters.lin_regFinal
+```{r}
+library(car)
+
+anova(masters.lin_regFinal, masters.lin_reg)
+
+```
+Here we can see that it does not make sense to keep the gir_not_fair predictor
+because we get a very high p-value after we conduct the anova test. So our
+final regression model will stay the same. So we fail to reject the null
+hypothesis.
+
+
+Preforming k-fold cross validation on our linear regression model with the caret 
+library.
+```{r}
+#install.packages("caret")
+set.seed(8392)
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+model.lm <- train(total_score ~ driving_distance + sg_putt +
+    ranking + rounds + gir + top_10 +
+      putts_round, data = data.train,
+      method = "lm", trControl = ctrl)
+print(model.lm)
+model.lm$resample
+```
+We decided to use 10 folds in our cross validation. We ended up getting a root
+mean squared error of 6.13353, and a mean absolute error of 4.85346. 
+
+
+
+Printing out the top ten finishers from the 2021 masters. I am going to use
+this to my predicted top ten for the 2021 masters.
+```{r}
+
+#View(testData2021)
+testData2021 <- testData2021[which(testData2021$year == 2021),]
+testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
+testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
+#View(testData2021)
+# Actual top 10
+top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
+# top10
+top10Final <- subset(top10, select = c(player_name, masters_finish, total_score))
+# top10Final
+# View(top10Final)
+top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
+top10Finishers
+```
+Created the prediction function with my regression model and the test data set.
+```{r}
+prediction <- predict(masters.lin_regFinal, newdata = data.test)
+#prediction
+
+finalTestData <- testData2021
+finalTestData$predictedFinalScore <- prediction
+FinalTestDataSub <- subset(finalTestData, select =  c(year, player_name, total_score,
+                                            masters_top_10, predictedFinalScore))
+
+FinalTestDataSub[order(FinalTestDataSub$predictedFinalScore, decreasing = FALSE),]  
+
+```
+After testing it on our test data, we see that were predicted 2 out of the top
+10 golfers for the 2021 masters, which is not very good
+
 
 
