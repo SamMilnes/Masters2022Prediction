@@ -25,9 +25,7 @@ pga$masters_finish<-gsub("T","",as.character(pga$masters_finish))
 pga$ranking<-gsub("T","",as.character(pga$ranking))
 
 
-
 # Converting distance columns to inches
-
 pga_mat_fair <- stringr::str_extract_all(pga$prox_fair, "\\d+", simplify = TRUE)
 pga$prox_fair <- as.numeric(pga_mat_fair[, 1]) * 12 + as.numeric(pga_mat_fair[, 2])
 pga_mat_rough <- stringr::str_extract_all(pga$prox_rough, "\\d+", simplify = TRUE)
@@ -35,16 +33,10 @@ pga$prox_rough <- as.numeric(pga_mat_rough[, 1]) * 12 + as.numeric(pga_mat_rough
 pga_mat_arg <- stringr::str_extract_all(pga$prox_arg, "\\d+", simplify = TRUE)
 pga$prox_arg <- as.numeric(pga_mat_arg[, 1]) * 12 + as.numeric(pga_mat_arg[, 2])
 
-
-# Fill in NA's for score_average column to median
-#pga$score_average[is.na(pga$score_average)] <- median(pga$score_average, na.rm = T)
-
-
 # Get rid of all rows that have "CU" for masters finish column. This indicates
 # That the player did not make the cut, if kept in, this would skew the total score column
 newPGA <- subset(pga, (pga$masters_finish != "CU"))
 newPGA2 <- subset(newPGA, newPGA$masters_finish != "WD")                 
-
 
 # Change the value in the masters finish column to 1 if "Win"
 newPGA2$masters_finish[newPGA2$masters_finish == "Win"] <- 1 
@@ -60,9 +52,6 @@ testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
 newPGA2 <- newPGA2[, -2]
 
 
-# Cleaned Data-frame to use for testing
-#View(newPGA2)
-
 ```
 
 
@@ -74,12 +63,7 @@ data.train <- newPGA2[which(newPGA2$year < 2021),]
 data.train$ranking <- as.numeric(as.character(data.train$ranking))
 data.test$ranking <- as.numeric(as.character(data.test$ranking))
 newPGA2$ranking <- as.numeric(as.character(newPGA2$ranking))
-#data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
-#data.train <- subset(data.train, select = -c(masters_finish))
 data.train <- data.train[, -1]
-
-
-
 
 # Getting all data from the 2021 season.
 data.test <- newPGA2[which(newPGA2$year == 2021),]
@@ -90,105 +74,58 @@ data.test <- newPGA2[which(newPGA2$year == 2021),]
 
 
 ```{r}
-
 #Adding column
 #1 if the golfer finished in the top 10 
 #0 if outside the top 10
-
 newPGA2$masters_finish <- as.numeric(as.character(newPGA2$masters_finish))
-
 newPGA2$masters_top_10 <- ifelse(newPGA2$masters_finish < 11, 1, 0)
-
-
 data.train$masters_finish <- as.numeric(as.character(data.train$masters_finish))
-
 data.train$masters_top_10 <- ifelse(data.train$masters_finish < 11, 1, 0)
-
-
-
-
-
-
 ```
 
 ```{r}
-# masters.logisticReg <- glm(masters_top_10 ~ driving_distance + sg_putt + ranking + rounds + gir + top_10 + putts_round, 
-#                            data = data.train, family = binomial)
 
+#making a logisitic regression model on the training data
 masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + rounds + gir + putts_round, 
                            data = data.train, family = binomial)
 
 # summary(masters.logisticReg)
 summary(masters.logisticReg2)
 
-cor(data.train)
+#using cor function to view the strength of some predictors
+#commented out for readability of document
+#cor(data.train)
 
 ```
 
 ```{r}
-# newPGA2 <- subset(newPGA2, select = -c(masters_top_10))
 
 
+#testing a logistic regression model on the 2021 masters
+#A golfer will have a probability of finishing top 10 that year
+#They will have a 1 if they ended up finishing top 10 and a 0 if not
 myprobability2 <- predict(masters.logisticReg2, data.test, type = "response")
-
 myprobability2
-
-
-
 prediction.logistic2 <- rep(0, length(newlogisticprediction))
-
-# masters.logisticReg2[newlogisticprediction > 0.5] <- 1
-# table(newlogisticprediction, newPGA2$masters_top_10)
-
-
-
-# logisticPrediction <- predict(masters.logisticReg2, data.test, type = "response")
-
 prediction.logistic2[myprobability2 > 0.5] <- 1
-table(prediction.logistic2, data.test$masters_top_10)
-
 mean(prediction.logistic2 != data.test$masters_top_10)
 testData2021$top_10_prob <- myprobability2
 
+#making easy to read results
 FinalTestDataSub <- subset(testData2021, select =  c(year, player_name, total_score,
                                             masters_top_10, top_10_prob))
-
+#view in increasing order of probability of top 10
 FinalTestDataSub[order(FinalTestDataSub$top_10_prob, decreasing = FALSE),]
 
 
 
 ```
-
-
 ```{r}
-pgaFinal <- read.csv("Masters2022FinalPredictionData.csv")
-masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + rounds + gir + putts_round, 
-                           data = data.train, family = binomial)
-
-myprobabilityfinal <- predict(masters.logisticReg2, pgaFinal, type = "response")
-
-prediction.logistic2 <- rep(0, length(newlogisticprediction))
-
-prediction.logistic2[myprobability2 > 0.5] <- 1
-
-
-
-pgaFinal$top_10_prob <- myprobabilityfinal
-
-# pgaFinal[order(pgaFinal$top_10_prob, decreasing = FALSE),]
-
-# FinalTestDataSub2 <- subset(pgaFinal, select =  c(year, player_name, top_10_prob))
-
-# FinalTestDataSub2[order(FinalTestDataSub2$top_10_prob, decreasing = FALSE),]
-
-```
-
-```{r}
-#View(testData2021)
+#MORE 2021 DATA
 testData2021 <- testData2021[which(testData2021$year == 2021),]
+#Adding collumn to data set to give a 1 to a golfer if they finished top 10 and a 0 if not
 testData2021$masters_finish <- sapply(testData2021$masters_finish, as.numeric)
 testData2021$masters_top_10 <- ifelse(testData2021$masters_finish < 11, 1, 0)
-#View(testData2021)
 # Actual top 10
 top10 <- testData2021[which(testData2021$masters_top_10 == 1),]
 top10
@@ -198,6 +135,48 @@ View(top10Final)
 top10Finishers <- subset(top10, select = c(player_name, masters_finish, total_score))
 top10Finishers
 ```
+
+```{r}
+
+#2022 PREDICTIONS
+
+#reading the data final data set with the golfers that were not included prior
+pgaFinal <- read.csv("Masters2022FinalPredictionData.csv")
+
+#making a logistic rgression model using driving distance, strokes gained putting, rounds, greens in #regulation and putts per round. 
+masters.logisticReg2 <- glm(masters_top_10 ~ driving_distance + sg_putt + rounds + gir + putts_round, 
+                           data = data.train, family = binomial)
+
+#making a prediction using the regression model and pgaFinal data set
+myprobabilityfinal <- predict(masters.logisticReg2, pgaFinal, type = "response")
+prediction.logistic2 <- rep(0, length(newlogisticprediction))
+prediction.logistic2[myprobability2 > 0.5] <- 1
+
+
+#adding the probability of finishing top 10 in 2022 to the pgaFinal data set
+pgaFinal$top_10_prob <- myprobabilityfinal
+
+summary(masters.logisticReg2)
+
+View(pgaFinal)
+
+
+```
+
+Interpretation
+
+The prediction of sports results can be very challenging due to factors that cannot be given numerical values. Any athlete can perform out of character on any given day for the good or the better resulting in a very challenging prediction. However, we have access to so many statistics today that can make this challenge a bit easier. When running a logistic regression model on the 2021 masters, we successfully predicted 3 of the top 10 golfers based on our top 10 percentages. At first glance this might seem fairly inaccurate. However, when considering that the Masters includes field of 90 or so golfers that may or may not play up to their standards, this prediction may seem appropriate. When using the logistic regression model to try to predict the 2022 Masters, we ended up again predicting 3 of the 10 correctly.
+
+The predictors that we decided to use for logistic regression included driving distance, strokes gained putting, rounds, greens in regulation and putts per round. These predictors were decided based on a few factors including, p-values, the cor function, and just using our basic golf knowledge of what is important in golf. The model used stats that apply to the year that the tournament was played in. This was true for all except a couple of golfers that played in the Masters this year but had a very minimal number of rounds played leading up to the tournament due to injury. In this case we used their stats from 2021. 
+
+One golfer that was accurately predicted by our model was Justin Thomas. Thomas has been a very effective golfer of late and was given the highest percentage to finish in the top 10 in this years master. Thomas did end up finishing in 8th place. A golfer that did not play up to his standards was Patrick Cantlay. At second highest in our model, Cantlay was given a 65 percent chance to finish in the top 10 of this years Masters. He had already had 4 top 10 finishes in major events of this golf year and had very promising features such as a low putts per round and a high amount of strokes gained putting. Cantlay ended up finishing 39th in this years Masters.
+
+
+After playing around with some other predictors, I believe that we chose some of the most effective ones.
+Above, the p-values for each predictor are shown in the 2022 prediction. Driving distance, rounds, greens in regulation and putts per round were all very strong predictors. Strokes gained putting was perhaps out of the confidence interval but a statistic that we believe to be very important.
+Like I had stated early, I believe that golf is a very hard sport to predict given that it is entirely based on solo performances that vary greatly. We are happy with the logistic regression approach successfully predicting 3 of the top 10 finishers. 
+
+
 
 
 
